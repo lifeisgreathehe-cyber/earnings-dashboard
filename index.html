@@ -124,7 +124,7 @@ footer a,.sub a{color:var(--accent)}
   <p class="lede">상장사가 DART에 낸 잠정실적 공시를 모아, 실적이 좋아진 업종과 기업을 골라 보여 줍니다. 평일 저녁 7시 무렵 새 공시와 주가를 반영합니다.</p>
   <div class="meta" id="meta">불러오는 중…</div>
   <nav class="toc">
-    <a href="#sectors">업종 분석</a><a href="#best">실적 좋은 기업</a><a href="#alerts">최근 알림</a><a href="#all">전체 종목</a><a href="#kb">화장품 내재가치</a><a href="#how">기준 설명</a>
+    <a href="#sectors">업종 분석</a><a href="#best">실적 좋은 기업</a><a href="#alerts">최근 알림</a><a href="#all">전체 종목</a><a href="#kb">전 종목 내재가치</a><a href="#how">기준 설명</a>
   </nav>
 </header>
 <div id="app"></div>
@@ -159,7 +159,7 @@ footer a,.sub a{color:var(--accent)}
 
 <section id="all">
   <h2>전체 종목</h2>
-  <p class="sub">머리글(⇅)을 누르면 정렬되고, 한 번 더 누르면 순서가 뒤집힙니다. 종목명을 누르면 DART 공시 원문이 열립니다.</p>
+  <p class="sub">머리글(⇅)을 누르면 정렬되고, 한 번 더 누르면 순서가 뒤집힙니다. 종목명을 누르면 기업 페이지가 열립니다.</p>
   <div class="controls">
     <select id="fSector" aria-label="업종"></select>
     <select id="fMarket" aria-label="시장"><option value="">전체 시장</option><option>KOSPI</option><option>KOSDAQ</option></select>
@@ -172,9 +172,17 @@ footer a,.sub a{color:var(--accent)}
 </section>
 
 <section id="kb">
-  <h2>화장품 업체 내재가치</h2>
-  <p class="sub">K-뷰티 산업 대시보드의 시나리오별 적정주가입니다. 괴리율이 플러스면 현재가가 기준 적정주가보다 낮다는 뜻입니다. <a href="https://lifeisgreathehe-cyber.github.io/kcosmetics-dashboard/">K-뷰티 대시보드 열기</a></p>
+  <h2>전 종목 내재가치</h2>
+  <p class="sub">발표한 모든 회사의 시나리오별 적정주가입니다. 괴리율이 플러스면 현재가가 기준 적정주가보다 낮다는 뜻입니다. 화장품 25개사는 <a href="https://lifeisgreathehe-cyber.github.io/kcosmetics-dashboard/">K-뷰티 대시보드</a> 값을 그대로 씁니다. 종목명을 누르면 10년 실적과 분석이 있는 기업 페이지가 열립니다.</p>
+  <div class="controls">
+    <select id="vVerdict" aria-label="판단"><option value="">전체 판단</option><option>저평가 구간</option><option>적정 구간</option><option>기대 선반영</option><option value="보류">평가 보류</option></select>
+    <select id="vCat" aria-label="린치 분류"><option value="">전체 린치 분류</option><option>고성장주</option><option>대형우량주</option><option>저성장주</option><option>경기순환주</option><option>회생주</option></select>
+    <label class="meta"><input type="checkbox" id="vDeep"> 심층 분석 있는 회사만</label>
+    <input type="search" id="vQ" placeholder="종목명·코드 검색" aria-label="검색">
+    <span class="meta" id="vCount"></span>
+  </div>
   <div class="tw wide"><table id="kbTable"></table></div>
+  <div class="more"><button id="vMore">더 보기</button></div>
 </section>
 
 <section id="how">
@@ -200,7 +208,8 @@ const nv=c=>`https://finance.naver.com/item/main.naver?code=${encodeURIComponent
 const md=s=>(s||"").slice(5).replace("-","/");
 const tagCls={"서프라이즈":"s","흑자전환":"t","저평가 성장":"v","적자전환":"d"};
 const tags=f=>(f||[]).map(t=>`<span class="tag ${tagCls[t]||""}">${esc(t)}</span>`).join("");
-let D,sel="",metric="up_ratio",secSort={k:"up_ratio",d:-1},allSort={k:"op_delta",d:-1},kbSort={k:"upside",d:-1},shown=50;
+let D,sel="",metric="up_ratio",secSort={k:"up_ratio",d:-1},allSort={k:"op_delta",d:-1},kbSort={k:"v_upside",d:-1},shown=50;
+const co=c=>`company.html?c=${encodeURIComponent(c)}`;
 
 fetch("data/dashboard.json",{cache:"no-cache"}).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}).then(d=>{D=d;init()})
  .catch(e=>{$("#app").innerHTML=`<div class="err">데이터를 불러오지 못했습니다 (${esc(e.message)}). 잠시 뒤 새로고침해 주세요.</div>`;$("#meta").textContent=""});
@@ -209,7 +218,7 @@ function init(){
   document.title=`${D.quarter} 잠정실적 분석`;
   $("#title").textContent=`${D.quarter} 잠정실적 분석`;
   $("#meta").textContent=`${D.asof} 기준 · 잠정실적을 낸 ${num(D.rows.length)}개사 · 주가는 ${D.asof} 종가`;
-  tiles();metricSeg();sectors();lists();alerts();timeline();allInit();kb();how();
+  tiles();metricSeg();sectors();lists();alerts();timeline();allInit();kbInit();how();
 }
 function cmp(a,b){if(a==null&&b==null)return 0;if(a==null)return-1;if(b==null)return 1;if(Array.isArray(a)){a=a.length;b=b.length}return typeof a==="string"?a.localeCompare(b,"ko"):a-b}
 function thead(cols,st){return "<thead><tr>"+cols.map(([k,l,c])=>`<th class="${c||""}${st.k===k?" on":""}" data-k="${k}" title="눌러서 정렬">${l}<span class="ar">${st.k===k?(st.d>0?"▲":"▼"):"⇅"}</span></th>`).join("")+"</tr></thead>"}
@@ -231,7 +240,7 @@ function metricSeg(){
   $("#metricSeg").innerHTML=Object.entries(METRICS).map(([k,l])=>`<button data-m="${k}" class="${k===metric?"on":""}">${l}</button>`).join("");
   $("#metricSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;metric=b.dataset.m;secSort={k:metric,d:-1};metricSeg();sectors()};
 }
-function setSel(s){sel=(sel===s?"":s);$("#fSector").value=sel;shown=50;sectors();lists();allRender()}
+function setSel(s){sel=(sel===s?"":s);$("#fSector").value=sel;shown=50;sectors();lists();allRender();kb()}
 function sectors(){
   const S=[...D.sectors].sort((a,b)=>(b[metric]??-1e9)-(a[metric]??-1e9));
   const vals=S.map(s=>s[metric]??0);
@@ -272,7 +281,7 @@ function lists(){
     ["흑자전환","전년 같은 분기 영업적자에서 흑자로",P.filter(r=>r.flags.includes("흑자전환")).sort((a,b)=>b.op-a.op),r=>eok(r.op)],
   ];
   $("#bestSub").textContent=(sel?`${sel} 업종만 보고 있습니다. `:"")+"목록마다 해당 기업이 모두 나오고, 길면 목록 안에서 아래로 스크롤됩니다. 서프라이즈와 저평가 성장은 시가총액 1,000억 원 이상만 고릅니다. 전체는 '전체 종목' 표의 구분 필터로 볼 수 있습니다.";
-  $("#lists").innerHTML=L.map(([h,d,arr,f])=>`<div class="card list"><h3>${h} <span class="mut" style="font-weight:400;font-size:13px">${arr.length}곳</span></h3><p class="d">${d}</p>${arr.length?`<ol>${arr.map(r=>`<li><span class="nm"><a href="${dart(r.rcept_no)}" target="_blank" rel="noopener">${esc(r.name)}</a><small>${esc(r.sector)}</small></span><span class="x">${f(r)}</span></li>`).join("")}</ol>`:'<div class="empty">해당 종목 없음</div>'}</div>`).join("");
+  $("#lists").innerHTML=L.map(([h,d,arr,f])=>`<div class="card list"><h3>${h} <span class="mut" style="font-weight:400;font-size:13px">${arr.length}곳</span></h3><p class="d">${d}</p>${arr.length?`<ol>${arr.map(r=>`<li><span class="nm"><a href="${co(r.code)}">${esc(r.name)}</a><small>${esc(r.sector)}</small></span><span class="x">${f(r)}</span></li>`).join("")}</ol>`:'<div class="empty">해당 종목 없음</div>'}</div>`).join("");
 }
 function alerts(){
   const A=D.alerts||[];
@@ -287,7 +296,7 @@ const ACOLS=[["name","종목","l"],["flags","구분","l"],["per","PER"],["roe","
 function allInit(){
   const secs=D.sectors.map(s=>s.sector).sort((a,b)=>a.localeCompare(b,"ko"));
   $("#fSector").innerHTML='<option value="">전체 업종</option>'+secs.map(s=>`<option>${esc(s)}</option>`).join("");
-  $("#fSector").onchange=e=>{sel=e.target.value;shown=50;sectors();lists();allRender()};
+  $("#fSector").onchange=e=>{sel=e.target.value;shown=50;sectors();lists();allRender();kb()};
   ["#fMarket","#fFlag"].forEach(id=>$(id).onchange=()=>{shown=50;allRender()});
   $("#fQ").oninput=()=>{shown=50;allRender()};
   $("#moreBtn").onclick=()=>{shown+=100;allRender()};
@@ -300,7 +309,7 @@ function allRender(){
   R.sort((a,b)=>cmp(a[allSort.k],b[allSort.k])*allSort.d);
   $("#allCount").textContent=`${num(R.length)}개 종목`;
   const fmt=(k,r)=>{const v=r[k];switch(k){
-    case"name":return `<a href="${dart(r.rcept_no)}" target="_blank" rel="noopener">${esc(v)}</a><span class="c">${esc(r.code)}</span><span class="s2">${esc(r.sector)} · ${esc(r.market)} · ${md(r.date)} 공시</span>`;
+    case"name":return `<a href="${co(r.code)}">${esc(v)}</a><span class="c">${esc(r.code)}</span><span class="s2">${esc(r.sector)} · ${esc(r.market)} · ${md(r.date)} 공시</span>`;
     case"flags":return tags(v)||'<span class="mut">–</span>';
     case"per":case"pbr":return v==null||v<=0?'<span class="mut">–</span>':num(v,1);
     case"roe":case"op_margin":return v==null?'<span class="mut">–</span>':num(v,1)+"%";
@@ -313,20 +322,35 @@ function allRender(){
   $("#allTable").innerHTML=thead(ACOLS,allSort)+"<tbody>"+R.slice(0,shown).map(r=>`<tr>${ACOLS.map(([k,,c])=>`<td class="${c||""}${k==="name"?" name":""}${k==="flags"?" fl":""}">${fmt(k,r)}</td>`).join("")}</tr>`).join("")+"</tbody>";
   $("#moreBtn").style.display=R.length>shown?"":"none";
 }
+let vShown=60;
 function kb(){
-  const cols=[["name","종목","l"],["verdict","판단","l"],["upside","괴리율"],["price","현재가"],["fv_bear","적정가(약세)"],["fv_base","적정가(기준)"],["fv_bull","적정가(강세)"],["per","PER"],["roe","ROE"],["implied_g","주가에 반영된 성장률"],["base_g","기준 성장률"],["mcap","시가총액"],["review","분기 리뷰","l"],["group","구분","l"]];
-  const R=[...D.kbeauty].sort((a,b)=>cmp(a[kbSort.k],b[kbSort.k])*kbSort.d);
+  const cols=[["name","종목","l"],["v_verdict","판단","l"],["v_upside","괴리율"],["px","현재가"],["v_fv_bear","적정가 (약세)"],["v_fv_base","적정가 (기준)"],["v_fv_bull","적정가 (강세)"],["v_per_ttm","PER 최근4분기"],["v_per_ann","PER 분기 연환산"],["v_por_ttm","POR 최근4분기"],["v_por_ann","POR 분기 연환산"],["pbr","PBR"],["roe","ROE"],["v_implied_g","주가 반영 성장률"],["v_base_g","기준 성장률"],["v_peg","PEG"],["v_lynch_cat","린치 분류","l"],["v_buffett_score","버핏 체크 (6점)"],["mcap","시가총액"]];
+  const vd=$("#vVerdict").value,ct=$("#vCat").value,dp=$("#vDeep").checked,q=$("#vQ").value.trim().toLowerCase();
+  const R=pool().filter(r=>(!vd||(r.v_verdict||"").includes(vd))&&(!ct||r.v_lynch_cat===ct)&&(!dp||r.v_deep)&&(!q||r.name.toLowerCase().includes(q)||r.code.includes(q))).sort((a,b)=>cmp(a[kbSort.k],b[kbSort.k])*kbSort.d);
+  $("#vCount").textContent=`${num(R.length)}개 종목`;
+  const vcls=v=>/저평가/.test(v||"")?"pos":/선반영/.test(v||"")?"neg":"mut";
+  const mul=v=>v==null?'<span class="mut">–</span>':v<0?'<span class="mut">적자</span>':num(v,1);
   const fmt=(k,r)=>{const v=r[k];switch(k){
-    case"name":return `<a href="https://lifeisgreathehe-cyber.github.io/kcosmetics-dashboard/#companies" target="_blank" rel="noopener">${esc(v)}</a><span class="c">${esc(r.code)}</span>`;
-    case"upside":return pct(v,0);
-    case"price":case"fv_bear":case"fv_base":case"fv_bull":return v==null?"–":num(v)+"원";
-    case"per":return v==null||v<=0?"–":num(v,1);
-    case"roe":case"implied_g":case"base_g":return v==null?"–":num(v,1)+"%";
+    case"name":return `<a href="${co(r.code)}">${esc(v)}</a><span class="c">${esc(r.code)}</span>${r.v_deep?'<span class="tag t" style="margin-left:4px">심층</span>':""}<span class="s2">${esc(r.sector)}${r.v_fv_src==="K-뷰티 대시보드"?" · K-뷰티 값":""}</span>`;
+    case"v_verdict":return `<span class="${vcls(v)}">${esc(v||"–")}</span>`;
+    case"v_upside":return pct(v,0);
+    case"px":case"v_fv_bear":case"v_fv_base":case"v_fv_bull":return v==null?'<span class="mut">–</span>':num(v);
+    case"v_per_ttm":case"v_per_ann":case"v_por_ttm":case"v_por_ann":return mul(v);
+    case"pbr":return v==null||v<=0?'<span class="mut">–</span>':num(v,1);
+    case"roe":case"v_implied_g":case"v_base_g":return v==null?'<span class="mut">–</span>':num(v,1)+"%";
+    case"v_peg":return v==null?'<span class="mut">–</span>':num(v,2);
+    case"v_buffett_score":return v==null?"–":num(v);
     case"mcap":return eok(v);
-    case"review":return `<span class="mut" style="display:inline-block;min-width:260px;white-space:normal">${esc(v)}</span>`;
     default:return esc(v)}};
-  $("#kbTable").innerHTML=thead(cols,kbSort)+"<tbody>"+R.map(r=>`<tr>${cols.map(([k,,c])=>`<td class="${c||""}${k==="name"?" name":""}">${fmt(k,r)}</td>`).join("")}</tr>`).join("")+"</tbody>";
-  $("#kbTable").onclick=e=>{const th=e.target.closest("th");if(!th)return;const k=th.dataset.k;kbSort={k,d:kbSort.k===k?-kbSort.d:(["name","verdict","group","review"].includes(k)?1:-1)};kb()};
+  $("#kbTable").innerHTML=thead(cols,kbSort)+"<tbody>"+R.slice(0,vShown).map(r=>`<tr>${cols.map(([k,,c])=>`<td class="${c||""}${k==="name"?" name":""}">${fmt(k,r)}</td>`).join("")}</tr>`).join("")+"</tbody>";
+  $("#vMore").style.display=R.length>vShown?"":"none";
+}
+function kbInit(){
+  $("#kbTable").onclick=e=>{const th=e.target.closest("th");if(!th)return;const k=th.dataset.k;kbSort={k,d:kbSort.k===k?-kbSort.d:(["name","v_verdict","v_lynch_cat"].includes(k)?1:-1)};kb()};
+  ["#vVerdict","#vCat","#vDeep"].forEach(id=>$(id).onchange=()=>{vShown=60;kb()});
+  $("#vQ").oninput=()=>{vShown=60;kb()};
+  $("#vMore").onclick=()=>{vShown+=150;kb()};
+  kb();
 }
 function how(){
   const c=D.config,s=c.surprise,v=c.value_up;
@@ -338,6 +362,9 @@ function how(){
     `<b>증익 비율</b>은 업종 안에서 영업이익이 전년 같은 분기보다 늘어난 회사의 비율이고, <b>합산 영업이익 증가율</b>은 업종 전체 영업이익 합계의 증가율입니다. 막대 그래프에서 300%가 넘는 값은 잘라서 그립니다.`,
     `PER은 시가총액을 최근 4개 분기 순이익으로 나눈 값이라 적자 회사는 비어 있습니다. 시가총액은 OpenDART 주식 수와 최근 종가로 계산합니다.`,
     `업종은 한국표준산업분류를 묶은 자체 분류이고, K-뷰티 대시보드에 있는 25개사는 '화장품·미용'으로 모았습니다.`,
+    `<b>적정주가</b>: 버핏의 주주이익과 린치의 성장률 틀을 쓴 2단계 할인 모형입니다. 정상화 이익(최근 4분기 지배순이익에 과거 평균 이익률로 계산한 이익을 30%, 경기순환주는 50% 섞음)에 주주이익 전환율(지난 5년 영업현금흐름−설비투자 ÷ 순이익)을 곱해 현금흐름을 구하고, 기준 성장률로 5년, 이후 5년간 2%로 줄여 할인합니다. 할인율은 9%에서 코스닥·고부채·금융사에 1%p씩 더합니다. 약세·강세는 기준 성장률 ±4%p입니다.`,
+    `<b>PER·POR</b>: '최근4분기'는 최근 4개 분기 지배주주 순이익(영업이익) 합, '분기 연환산'은 최근 분기 값 × 4로 나눈 값입니다. 잠정실적에 순이익이 없으면 직전 4개 분기의 순이익/영업이익 비율로 추정합니다.`,
+    `<b>린치 분류</b>: 순이익 5년 성장률 20% 이상이면 고성장주, 8% 이상 대형사는 대형우량주, 그 아래는 저성장주, 경기 민감 업종이거나 이익률 변동이 크면 경기순환주, 최근 적자에서 흑자로 돌아오면 회생주입니다. 과거 재무가 없으면 판단을 미룹니다.`,
   ].map(x=>`<li>${x}</li>`).join("");
 }
 })();

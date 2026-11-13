@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>기업 분석</title>
+<meta name="description" content="잠정실적 공시 기업의 투자지표, 10년·12분기 실적, 내재가치와 분석틀.">
+<style>
+:root{
+  --bg:#f7f7f5;--surface:#ffffff;--ink:#1d1d1b;--ink2:#5b5b57;--ink3:#8a8a85;--line:#e4e3de;--line2:#efeee9;
+  --up:#c8372d;--up-soft:#fbe9e7;--down:#2a62c9;--down-soft:#e7eefb;--accent:#1f6f5c;--accent-soft:#e3f1ec;--warn:#9a6a00;--warn-soft:#fbf1d9;
+  --bar:#1f6f5c;--bar2:#c9c8c1;--line-c:#c8372d;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141413;--surface:#1d1d1b;--ink:#ecebe6;--ink2:#b3b2ab;--ink3:#85847e;--line:#33332f;--line2:#272725;
+  --up:#ff7a6e;--up-soft:#3a1f1c;--down:#7aa5ff;--down-soft:#1c2740;--accent:#5fc4a6;--accent-soft:#17302a;--warn:#e8b54a;--warn-soft:#342a12;
+  --bar:#5fc4a6;--bar2:#4a4944;--line-c:#ff7a6e;
+}}
+:root[data-theme="dark"]{
+  --bg:#141413;--surface:#1d1d1b;--ink:#ecebe6;--ink2:#b3b2ab;--ink3:#85847e;--line:#33332f;--line2:#272725;
+  --up:#ff7a6e;--up-soft:#3a1f1c;--down:#7aa5ff;--down-soft:#1c2740;--accent:#5fc4a6;--accent-soft:#17302a;--warn:#e8b54a;--warn-soft:#342a12;
+  --bar:#5fc4a6;--bar2:#4a4944;--line-c:#ff7a6e;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 16px 64px}
+a{color:var(--accent)}
+.back{font-size:13.5px;text-decoration:none}
+header{margin-top:10px}
+h1{font-size:28px;line-height:1.2;margin:0;letter-spacing:-.01em}
+h1 .c{font-size:15px;color:var(--ink3);font-weight:400;margin-left:8px}
+.meta{color:var(--ink2);font-size:13.5px;margin-top:4px}
+.meta a{margin-right:10px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.badge{font-size:12.5px;font-weight:600;border-radius:6px;padding:2px 9px;background:var(--line2);color:var(--ink2)}
+.badge.pos{background:var(--up-soft);color:var(--up)}.badge.neg{background:var(--down-soft);color:var(--down)}
+.badge.acc{background:var(--accent-soft);color:var(--accent)}.badge.warn{background:var(--warn-soft);color:var(--warn)}
+section{margin-top:34px}
+h2{font-size:19px;margin:0 0 4px}
+h3{font-size:15.5px;margin:0 0 6px}
+.sub{color:var(--ink2);font-size:14px;margin:0 0 12px;max-width:860px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.summary{font-size:15.5px;line-height:1.75;max-width:900px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 13px}
+.tile .k{font-size:12.5px;color:var(--ink2)}
+.tile .v{font-size:22px;font-weight:650;margin-top:1px;font-variant-numeric:tabular-nums}
+.tile .n{font-size:12px;color:var(--ink3)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line2);text-align:right;white-space:nowrap}
+th{color:var(--ink2);font-weight:600;font-size:12.5px}
+th.l,td.l{text-align:left}
+tbody tr:hover{background:var(--line2)}
+td.rowh{text-align:left;color:var(--ink2);font-weight:600;position:sticky;left:0;background:var(--surface)}
+.pos{color:var(--up)}.neg{color:var(--down)}.mut{color:var(--ink3)}
+.chk{list-style:none;margin:0;padding:0}
+.chk li{display:grid;grid-template-columns:22px 1fr auto;gap:6px;padding:7px 0;border-top:1px solid var(--line2);font-size:13.5px;align-items:baseline}
+.chk li:first-child{border-top:0}
+.chk .ic{font-weight:700}
+.chk .ic.y{color:var(--accent)}.chk .ic.n{color:var(--up)}.chk .ic.u{color:var(--ink3)}
+.chk .val{font-variant-numeric:tabular-nums;color:var(--ink2)}
+.chk small{display:block;color:var(--ink3);font-size:12px}
+.scen{position:relative;height:120px;margin:10px 40px 4px}
+.scen .pt.now{top:44px}
+.scen .pt.now .lb{top:auto;bottom:-36px}
+.scen .pt.now .pv{position:absolute;top:58px;left:50%;transform:translateX(-50%);font-weight:600}
+.scen .axis{position:absolute;left:0;right:0;top:52px;height:2px;background:var(--line)}
+.scen .pt{position:absolute;top:30px;transform:translateX(-50%);text-align:center;font-size:12px;white-space:nowrap}
+.scen .pt .dot{width:12px;height:12px;border-radius:50%;margin:16px auto 4px;background:var(--bar)}
+.scen .pt.now .dot{background:var(--ink);border-radius:2px;width:4px;height:26px;margin-top:9px}
+.scen .pt .lb{position:absolute;top:-22px;left:50%;transform:translateX(-50%);color:var(--ink2)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13.5px}
+.kv dt{color:var(--ink2)}.kv dd{margin:0;font-variant-numeric:tabular-nums}
+.chart{width:100%;height:auto;display:block}
+.legend{display:flex;gap:14px;font-size:12.5px;color:var(--ink2);margin:4px 0 8px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.deep h3{margin-top:18px}
+.deep p,.deep li{font-size:14.5px;line-height:1.75;max-width:900px}
+.deep ul{padding-left:20px}
+.fisher{counter-reset:f;list-style:none;padding:0;margin:0}
+.fisher li{display:grid;grid-template-columns:28px 1fr 64px;gap:8px;padding:9px 0;border-top:1px solid var(--line2);font-size:14px;max-width:none}
+.fisher li:first-child{border-top:0}
+.fisher li:before{counter-increment:f;content:counter(f);color:var(--ink3);font-weight:600;text-align:right}
+.fisher .q{font-weight:600}
+.fisher .a{color:var(--ink2);font-size:13.5px;margin-top:2px}
+.fisher .s{text-align:right;font-weight:700;font-size:13px}
+.src{font-size:12.5px;color:var(--ink3)}
+.src a{color:var(--ink2)}
+.empty{color:var(--ink3);font-size:14px}
+.err{background:var(--warn-soft);color:var(--warn);padding:12px;border-radius:8px;margin-top:16px}
+footer{margin-top:40px;font-size:12.5px;color:var(--ink3);border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:760px){.two,.three{grid-template-columns:1fr}h1{font-size:23px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="./">← 잠정실적 분석으로</a>
+<div id="app"><p class="meta">불러오는 중…</p></div>
+<footer>자료: OpenDART 사업·분기보고서와 잠정실적 공시, 네이버 금융 종가, K-뷰티 산업 대시보드. 심층 분석은 사업보고서·뉴스·IR 자료·증권사 리포트의 사업 내용을 요약한 것이며 목표주가는 쓰지 않습니다. 투자 권유가 아닙니다.</footer>
+</div>
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num=(x,d=0)=>x==null||isNaN(x)?"–":Number(x).toLocaleString("ko-KR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const sg=x=>x>0?"+":"";
+const pct=(x,d=1)=>x==null||isNaN(x)?'<span class="mut">–</span>':`<span class="${x>0?"pos":x<0?"neg":""}">${sg(x)}${num(x,d)}%</span>`;
+const eok=x=>{if(x==null)return"–";return Math.abs(x)>=10000?num(x/10000,1)+"조":num(x,0)+"억"};
+const mul=v=>v==null?"–":v<0?"적자":num(v,1)+"배";
+const code=new URLSearchParams(location.search).get("c")||"";
+if(!/^\d{6}$/.test(code)){$("#app").innerHTML='<div class="err">종목코드가 없습니다. 목록에서 기업을 골라 주세요.</div>';return}
+fetch(`data/co/${code}.json`,{cache:"no-cache"}).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}).then(render)
+ .catch(e=>{$("#app").innerHTML=`<div class="err">이 회사 자료를 불러오지 못했습니다 (${esc(e.message)}).</div>`});
+
+function chk(list){return `<ul class="chk">${list.map(c=>`<li><span class="ic ${c.ok===true?"y":c.ok===false?"n":"u"}">${c.ok===true?"✓":c.ok===false?"✕":"·"}</span><span>${esc(c.name)}${c.note?`<small>${esc(c.note)}</small>`:""}</span><span class="val">${esc(c.val)}</span></li>`).join("")}</ul>`}
+
+function barLine(items,labelKey,opts){
+  // 막대: 매출, 막대2: 영업이익, 선: 영업이익률
+  const W=1000,H=300,pl=56,pr=48,pt=16,pb=34,n=items.length;if(!n)return '<p class="empty">자료 없음</p>';
+  const vals=items.flatMap(x=>[x.sales,x.op]).filter(v=>v!=null);
+  const mx=Math.max(1,...vals),mn=Math.min(0,...vals);
+  const ms=items.map(x=>x.op_margin).filter(v=>v!=null);const mM=Math.max(5,...ms),mm=Math.min(0,...ms);
+  const y=v=>pt+(mx-v)/(mx-mn)*(H-pt-pb),ym=v=>pt+(mM-v)/(mM-mm)*(H-pt-pb);
+  const bw=(W-pl-pr)/n,gw=bw*0.34;
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.title)}">`;
+  for(let i=0;i<=4;i++){const v=mn+(mx-mn)*i/4,yy=y(v);s+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line2)"/><text x="${pl-6}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--ink3)">${eok(v)}</text>`;
+    const m=mm+(mM-mm)*i/4;s+=`<text x="${W-pr+6}" y="${ym(m)+4}" font-size="11" fill="var(--ink3)">${num(m,0)}%</text>`}
+  s+=`<line x1="${pl}" x2="${W-pr}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink3)"/>`;
+  items.forEach((x,i)=>{const cx=pl+bw*i+bw/2;
+    if(x.sales!=null)s+=`<rect x="${cx-gw-1}" y="${Math.min(y(x.sales),y(0))}" width="${gw}" height="${Math.abs(y(x.sales)-y(0))}" fill="var(--bar2)" rx="2"><title>${esc(x[labelKey])} 매출 ${eok(x.sales)}</title></rect>`;
+    if(x.op!=null)s+=`<rect x="${cx+1}" y="${Math.min(y(x.op),y(0))}" width="${gw}" height="${Math.abs(y(x.op)-y(0))}" fill="${x.op<0?"var(--down)":"var(--bar)"}" rx="2" ${x.prelim?'opacity=".6"':""}><title>${esc(x[labelKey])} 영업이익 ${eok(x.op)}</title></rect>`;
+    s+=`<text x="${cx}" y="${H-12}" text-anchor="middle" font-size="11.5" fill="var(--ink2)">${esc(opts.lab(x))}</text>`});
+  const pts=items.map((x,i)=>x.op_margin==null?null:[pl+bw*i+bw/2,ym(x.op_margin)]).filter(Boolean);
+  if(pts.length>1)s+=`<polyline points="${pts.map(p=>p.join(",")).join(" ")}" fill="none" stroke="var(--line-c)" stroke-width="2"/>`;
+  pts.forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="var(--line-c)"/>`);
+  return s+"</svg>";
+}
+function finTable(items,head,rows){
+  return `<div class="tw"><table><thead><tr><th class="l"></th>${items.map(x=>`<th>${esc(head(x))}</th>`).join("")}</tr></thead><tbody>${rows.map(([lab,f])=>`<tr><td class="rowh">${lab}</td>${items.map(x=>`<td>${f(x)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+function scenario(v,px){
+  const S=v.scenarios||{};const pts=[["약세",S.bear&&S.bear.per_share],["기준",S.base&&S.base.per_share],["강세",S.bull&&S.bull.per_share]].filter(p=>p[1]);
+  if(!pts.length||!px)return '<p class="empty">이익이 적자이거나 자료가 부족해 적정주가를 계산하지 않았습니다.</p>';
+  const all=[px,...pts.map(p=>p[1])];const lo=Math.min(...all)*0.9,hi=Math.max(...all)*1.05;const x=v=>(v-lo)/(hi-lo)*100;
+  return `<div class="scen"><div class="axis"></div>${pts.map(([l,p])=>`<div class="pt" style="left:${x(p)}%"><div class="lb">${l}</div><div class="dot"></div>${num(p)}원</div>`).join("")}<div class="pt now" style="left:${x(px)}%"><div class="dot"></div><div class="pv">현재가 ${num(px)}원</div></div></div>`;
+}
+function render(D){
+  document.title=`${D.name} 기업 분석`;
+  const M=D.metrics,V=D.valuation,dp=D.deep;
+  const vc=/저평가/.test(V.verdict)?"pos":/선반영/.test(V.verdict)?"neg":"";
+  const lq=M.last_q?M.last_q.replace("Q","년 ")+"분기":"최근 분기";
+  let h=`<header><h1>${esc(D.name)}<span class="c">${esc(D.code)}</span></h1>
+  <div class="meta">${esc(D.sector)} · ${esc(D.industry||"")} · ${esc(D.market)} · ${esc(D.basis||"")} 기준 · 주가 ${num(D.px)}원(${esc(D.asof)}) · 시가총액 ${eok(D.mcap)}</div>
+  <div class="meta"><a href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${encodeURIComponent(D.rcept_no)}" target="_blank" rel="noopener">잠정실적 공시 원문(${esc(D.date)})</a><a href="https://finance.naver.com/item/main.naver?code=${D.code}" target="_blank" rel="noopener">네이버 금융</a><a href="https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm=${encodeURIComponent(D.name)}" target="_blank" rel="noopener">DART 공시 목록</a></div>
+  <div class="badges"><span class="badge ${vc}">${esc(V.verdict)}</span><span class="badge acc">린치 분류: ${esc(D.lynch_cat)}</span>${D.asset_play?'<span class="badge warn">자산주 성격</span>':""}<span class="badge">버핏 체크 ${D.checks.buffett.filter(c=>c.ok).length}/6</span>${dp?'<span class="badge acc">심층 분석 있음</span>':""}</div></header>`;
+  h+=`<section><h2>한눈에 보기</h2><div class="card summary">${dp&&dp.summary?esc(dp.summary):autoSummary(D)}</div>${dp&&dp.updated?`<p class="src" style="margin-top:6px">심층 분석 작성일 ${esc(dp.updated)}</p>`:""}</section>`;
+  h+=`<section><h2>투자지표</h2><p class="sub">PER은 지배주주 순이익, POR은 영업이익 기준입니다. '최근4분기'는 ${esc(lq)}까지 4개 분기 합, '분기 연환산'은 ${esc(lq)} 한 분기 값 × 4입니다.${M.est_note?" "+esc(M.est_note)+".":""}</p><div class="tiles">
+    ${[["PER 최근4분기",mul(M.per_ttm),`지배순이익 ${eok(M.ni_ttm)}`],["PER 분기 연환산",mul(M.per_ann),`분기 지배순이익 ${eok(M.ni_q)}`],["POR 최근4분기",mul(M.por_ttm),`영업이익 ${eok(M.op_ttm)}`],["POR 분기 연환산",mul(M.por_ann),`분기 영업이익 ${eok(M.op_q)}`],["PBR",M.pbr==null||M.pbr<0?"–":num(M.pbr,2)+"배","시가총액 ÷ 지배주주 자본"],["ROE",M.roe_ttm==null?"–":num(M.roe_ttm,1)+"%","최근4분기 지배순이익 ÷ 자본"],["배당수익률",M.div_yield==null?"–":num(M.div_yield,2)+"%","2025년 배당금 지급액 기준"],["PEG",M.peg==null?"–":num(M.peg,2),"PER ÷ 기준 성장률"],["순현금",M.net_cash==null?"–":eok(M.net_cash),"현금 − 차입금·사채"],["부채비율",M.debt_ratio==null?"–":num(M.debt_ratio)+"%","부채 ÷ 자본"],["공시 후 주가",M.ret_since==null?"–":sg(M.ret_since)+num(M.ret_since,1)+"%","공시일 종가 대비"],["1년 주가",M.ret_1y==null?"–":sg(M.ret_1y)+num(M.ret_1y,1)+"%",""]].map(([k,v,n])=>`<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="n">${n}</div></div>`).join("")}</div></section>`;
+  const S=V.scenarios||{};
+  h+=`<section><h2>내재가치</h2><p class="sub">${V.source==="K-뷰티 대시보드"?"K-뷰티 산업 대시보드의 시나리오별 적정주가입니다.":"버핏의 주주이익과 린치의 성장률 틀로 계산한 2단계 할인 모형입니다. 앞으로 5년은 기준 성장률로, 6~10년차는 2%로 줄어들고, 이후는 2% 영구성장으로 봅니다. 이익 중 주주에게 돌아갈 현금 비율(전환율)은 지난 5년 주주이익 ÷ 순이익입니다."}</p>
+  <div class="two"><div class="card"><h3>시나리오별 적정주가</h3>${scenario(V,D.px)}
+  <div class="tw" style="margin-top:12px"><table><thead><tr><th class="l">시나리오</th><th>성장률(1~5년)</th><th>주당 가치</th><th>괴리율</th></tr></thead><tbody>${["bear","base","bull"].map(k=>S[k]?`<tr><td class="l">${{bear:"약세",base:"기준",bull:"강세"}[k]}</td><td>${S[k].g==null?"–":num(S[k].g,1)+"%"}</td><td>${num(S[k].per_share)}원</td><td>${pct(S[k].upside,1)}</td></tr>`:"").join("")}</tbody></table></div></div>
+  <div class="card"><h3>가정과 해석</h3><dl class="kv">
+    <dt>정상화 이익(E1)</dt><dd>${V.E1==null?"–":eok(V.E1)} <span class="mut">${esc(V.E1_note)}</span></dd>
+    ${V.mid_note?`<dt>사이클 평균 이익</dt><dd class="mut">${esc(V.mid_note)}</dd>`:""}
+    <dt>할인율(자기자본비용)</dt><dd>${num(V.r,1)}%</dd>
+    <dt>주주이익 전환율</dt><dd>${V.c==null?"–":num(V.c*100,0)+"%"}</dd>
+    <dt>기준 성장률</dt><dd>${V.base_g==null?"–":num(V.base_g,1)+"%"} <span class="mut">(지배순이익 5년 ${V.growth&&V.growth.ni_cagr5!=null?num(V.growth.ni_cagr5,1)+"%":"–"}, 매출 5년 ${V.growth&&V.growth.sales_cagr5!=null?num(V.growth.sales_cagr5,1)+"%":"–"}, 매출 10년 ${V.growth&&V.growth.sales_cagr10!=null?num(V.growth.sales_cagr10,1)+"%":"–"} 연평균)</span></dd>
+    <dt>주가에 반영된 성장률</dt><dd>${V.implied_g==null?"–":num(V.implied_g,1)+"%"} <span class="mut">지금 주가를 정당화하려면 앞으로 5년간 필요한 연평균 이익 성장률</span></dd>
+    <dt>순현금 가산</dt><dd>${eok(V.net_cash_added)}</dd>
+    <dt>안전마진 가격</dt><dd>${V.mos_price==null?"–":num(V.mos_price)+"원"} <span class="mut">기준 적정주가의 70%</span></dd>
+  </dl></div></div></section>`;
+  h+=`<section><h2>분석틀 점검</h2><p class="sub">숫자로 확인할 수 있는 항목은 자동으로 점검합니다. ✓ 충족, ✕ 미충족, · 자료 부족.</p><div class="three">
+    <div class="card"><h3>워런 버핏</h3>${chk(D.checks.buffett)}${dp&&dp.buffett?`<p style="font-size:13.5px;margin:10px 0 0">${esc(dp.buffett)}</p>`:""}</div>
+    <div class="card"><h3>피터 린치 · ${esc(D.lynch_cat)}</h3>${chk(D.checks.lynch)}${dp&&dp.lynch?`<p style="font-size:13.5px;margin:10px 0 0">${esc(dp.lynch)}</p>`:`<p class="src" style="margin-top:10px">${esc(lynchNote(D.lynch_cat))}</p>`}</div>
+    <div class="card"><h3>필립 피셔 (숫자 항목)</h3>${chk(D.checks.fisher)}<p class="src" style="margin-top:10px">${dp&&dp.fisher?"15개 질문 전체 평가는 아래 심층 분석에 있습니다.":"경영진·연구개발·노사관계 같은 질적 항목은 심층 분석에서 평가합니다."}</p></div></div></section>`;
+  const A=D.annual||[];
+  h+=`<section><h2>10년 실적</h2><p class="sub">사업보고서 기준 연간 실적(억 원)입니다.</p><div class="card"><div class="legend"><span><i style="background:var(--bar2)"></i>매출액</span><span><i style="background:var(--bar)"></i>영업이익</span><span><i style="background:var(--line-c);height:3px"></i>영업이익률(오른쪽 축)</span></div>${barLine(A,"year",{title:"10년 매출과 영업이익",lab:x=>String(x.year)})}</div>
+  <div style="margin-top:12px">${A.length?finTable(A,x=>x.year,[["매출액",x=>eok(x.sales)],["매출총이익",x=>eok(x.gp)],["판관비",x=>eok(x.sga)],["영업이익",x=>eok(x.op)],["영업이익률",x=>x.op_margin==null?"–":num(x.op_margin,1)+"%"],["지배주주 순이익",x=>eok(x.ni_ctrl)],["ROE",x=>x.roe==null?"–":num(x.roe,1)+"%"],["주주이익",x=>eok(x.oe)]]):'<p class="empty">연간 재무 자료를 아직 받지 못했습니다.</p>'}</div></section>`;
+  const Q=D.quarters||[];
+  h+=`<section><h2>최근 12개 분기</h2><p class="sub">분기별 3개월 실적(억 원)입니다. 4분기는 연간에서 3분기 누적을 뺀 값이고, 흐리게 표시된 분기는 잠정실적입니다.</p><div class="card"><div class="legend"><span><i style="background:var(--bar2)"></i>매출액</span><span><i style="background:var(--bar)"></i>영업이익</span><span><i style="background:var(--line-c);height:3px"></i>영업이익률</span></div>${barLine(Q,"q",{title:"분기 매출과 영업이익",lab:x=>x.q.slice(2)})}</div>
+  <div style="margin-top:12px">${Q.length?finTable(Q,x=>x.q.replace("Q"," Q")+(x.prelim?" 잠정":""),[["매출액",x=>eok(x.sales)],["매출총이익",x=>eok(x.gp)],["판관비",x=>eok(x.sga)],["영업이익",x=>eok(x.op)],["영업이익률",x=>x.op_margin==null?"–":num(x.op_margin,1)+"%"],["지배주주 순이익",x=>eok(x.ni_ctrl)+(x.ni_est?"*":"")]]):'<p class="empty">분기 자료 없음</p>'}</div></section>`;
+  h+=`<section class="deep"><h2>심층 분석</h2>${dp?deep(dp):'<div class="card empty">아직 심층 분석을 쓰지 않은 회사입니다. 실적이 좋은 회사부터 매일 몇 곳씩 사업보고서·뉴스·IR 자료·증권사 리포트를 읽고 채웁니다.</div>'}</section>`;
+  $("#app").innerHTML=h;
+}
+function lynchNote(c){return {"고성장주":"린치: 연 20% 이상 크는 회사. 성장이 얼마나 오래 갈지, 확장 여력이 남았는지가 핵심입니다.","대형우량주":"린치: 연 10~12% 크는 큰 회사. 싸게 사서 30~50% 오르면 다시 따져 봅니다.","저성장주":"린치: 경제 성장률 정도로 크는 회사. 배당이 핵심입니다.","경기순환주":"린치: 이익이 경기와 업황 따라 오르내리는 회사. PER이 가장 낮을 때가 고점일 수 있어 업황 위치가 중요합니다.","회생주":"린치: 적자나 위기에서 돌아오는 회사. 회복이 일회성이 아닌지, 재무가 버틸 수 있는지 봅니다."}[c]||"성장률 자료가 부족해 분류를 미뤘습니다."}
+function autoSummary(D){
+  const M=D.metrics,V=D.valuation,Q=D.quarters||[],l=Q[Q.length-1],p=Q.length>4?Q[Q.length-5]:null;
+  let t=`${D.name}은(는) ${D.sector} 업종의 ${D.lynch_cat}로 분류됩니다. `;
+  if(l&&p&&l.op!=null&&p.op!=null)t+=`${l.q.replace("Q","년 ")}분기 영업이익은 ${eok(l.op)}으로 전년 같은 분기(${eok(p.op)})보다 ${p.op>0?(sg((l.op/p.op-1)*100)+num((l.op/p.op-1)*100,0)+"%"):"개선"} 달라졌습니다. `;
+  if(M.per_ttm>0)t+=`최근 4분기 기준 PER은 ${num(M.per_ttm,1)}배, 분기 연환산 PER은 ${M.per_ann>0?num(M.per_ann,1)+"배":"적자"}입니다. `;
+  if(V.scenarios&&V.scenarios.base)t+=`기준 시나리오 적정주가는 ${num(V.scenarios.base.per_share)}원으로 현재가 대비 ${sg(V.scenarios.base.upside)}${num(V.scenarios.base.upside,0)}%이며, 지금 주가에는 연 ${V.implied_g==null?"–":num(V.implied_g,1)}% 이익 성장이 들어 있습니다.`;
+  return esc(t)+'<p class="src" style="margin:8px 0 0">숫자로 자동 작성한 요약입니다. 사업 내용 분석은 심층 분석이 채워지면 바뀝니다.</p>';
+}
+function deep(d){
+  const sec=(t,x)=>x?`<h3>${t}</h3>${Array.isArray(x)?`<ul>${x.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>`:`<p>${esc(x)}</p>`}`:"";
+  let h=`<div class="card">${sec("사업 구조",d.business)}${sec("이번 분기 실적 해석",d.quarter)}${sec("성장 동력",d.drivers)}${sec("위험 요인",d.risks)}${sec("뉴스·IR에서 확인한 것",d.news)}${sec("애널리스트 분석 요지 (목표주가 제외)",d.analysts)}${sec("경쟁력과 해자",d.moat)}${sec("결론",d.conclusion)}</div>`;
+  if(d.fisher&&d.fisher.length){h+=`<h3>필립 피셔 15개 질문</h3><p class="sub">『위대한 기업에 투자하라』의 15개 질문과 『보수적인 투자자는 마음이 편하다』의 관점으로 평가했습니다. 점수는 0~2점입니다.</p><div class="card"><ol class="fisher">${d.fisher.map(f=>`<li><div><div class="q">${esc(f.q)}</div><div class="a">${esc(f.a)}</div></div><div class="s ${f.score>=2?"pos":f.score<=0?"neg":""}">${f.score==null?"–":f.score+"점"}</div></li>`).join("")}</ol>${d.fisher_total!=null?`<p style="margin:10px 0 0;font-weight:600">합계 ${d.fisher_total} / 30</p>`:""}</div>`}
+  if(d.conservative)h+=`<h3>보수적 투자자 관점</h3><div class="card"><p style="margin:0">${esc(d.conservative)}</p></div>`;
+  if(d.sources&&d.sources.length)h+=`<p class="src" style="margin-top:10px">참고 자료: ${d.sources.map(s=>s.url?`<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>`:esc(s.title)).join(" · ")}</p>`;
+  return h;
+}
+})();
+</script>
+</body>
+</html>
