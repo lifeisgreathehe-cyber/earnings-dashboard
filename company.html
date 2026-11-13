@@ -9,17 +9,17 @@
 :root{
   --bg:#f7f7f5;--surface:#ffffff;--ink:#1d1d1b;--ink2:#5b5b57;--ink3:#8a8a85;--line:#e4e3de;--line2:#efeee9;
   --up:#c8372d;--up-soft:#fbe9e7;--down:#2a62c9;--down-soft:#e7eefb;--accent:#1f6f5c;--accent-soft:#e3f1ec;--warn:#9a6a00;--warn-soft:#fbf1d9;
-  --bar:#1f6f5c;--bar2:#c9c8c1;--line-c:#c8372d;
+  --bar:#1f6f5c;--bar2:#c9c8c1;--line-c:#c8372d;--ttm-s:#5b5a55;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#141413;--surface:#1d1d1b;--ink:#ecebe6;--ink2:#b3b2ab;--ink3:#85847e;--line:#33332f;--line2:#272725;
   --up:#ff7a6e;--up-soft:#3a1f1c;--down:#7aa5ff;--down-soft:#1c2740;--accent:#5fc4a6;--accent-soft:#17302a;--warn:#e8b54a;--warn-soft:#342a12;
-  --bar:#5fc4a6;--bar2:#4a4944;--line-c:#ff7a6e;
+  --bar:#5fc4a6;--bar2:#4a4944;--line-c:#ff7a6e;--ttm-s:#b9b7ae;
 }}
 :root[data-theme="dark"]{
   --bg:#141413;--surface:#1d1d1b;--ink:#ecebe6;--ink2:#b3b2ab;--ink3:#85847e;--line:#33332f;--line2:#272725;
   --up:#ff7a6e;--up-soft:#3a1f1c;--down:#7aa5ff;--down-soft:#1c2740;--accent:#5fc4a6;--accent-soft:#17302a;--warn:#e8b54a;--warn-soft:#342a12;
-  --bar:#5fc4a6;--bar2:#4a4944;--line-c:#ff7a6e;
+  --bar:#5fc4a6;--bar2:#4a4944;--line-c:#ff7a6e;--ttm-s:#b9b7ae;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -139,6 +139,24 @@ function barLine(items,labelKey,opts){
   pts.forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="var(--line-c)"/>`);
   return s+"</svg>";
 }
+function ttmChart(T){
+  // 최근 20개 분기 TTM: 매출(왼쪽 축), 영업이익·지배순이익(오른쪽 축)
+  const W=1000,H=300,pl=62,pr=62,pt=16,pb=34,n=T.length;if(n<2)return '<p class="empty">분기 자료가 부족해 그리지 않았습니다.</p>';
+  const rng=a=>{a=a.filter(v=>v!=null);let mx=Math.max(...a),mn=Math.min(0,...a);if(!a.length||mx<=mn)mx=mn+1;return [mn,mx+(mx-mn)*0.05]};
+  let [sn,sx]=rng(T.map(x=>x.sales));const [pn,px]=rng(T.flatMap(x=>[x.op,x.ni_ctrl]));
+  if(pn<0&&sn>=0&&px>0)sn=sx*pn/px; // 두 축의 0을 같은 높이에 맞춤
+  const ys=v=>pt+(sx-v)/(sx-sn)*(H-pt-pb),yp=v=>pt+(px-v)/(px-pn)*(H-pt-pb);
+  const X=i=>pl+(W-pl-pr)*(n===1?0.5:i/(n-1));
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="최근 20개 분기 TTM 매출·영업이익·순이익">`;
+  for(let i=0;i<=4;i++){const yy=pt+(H-pt-pb)*i/4;s+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line2)"/>${sx-(sx-sn)*i/4>=0?`<text x="${pl-6}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--ink3)">${eok(sx-(sx-sn)*i/4)}</text>`:""}<text x="${W-pr+6}" y="${yy+4}" font-size="11" fill="var(--ink3)">${eok(px-(px-pn)*i/4)}</text>`}
+  if(pn<0)s+=`<line x1="${pl}" x2="${W-pr}" y1="${yp(0)}" y2="${yp(0)}" stroke="var(--ink3)"/>`;
+  const ser=[["sales","매출액","var(--ttm-s)",ys],["op","영업이익","var(--bar)",yp],["ni_ctrl","지배주주 순이익","var(--line-c)",yp]];
+  ser.forEach(([k,lab,col,yf])=>{const P=T.map((x,i)=>x[k]==null?null:[X(i),yf(x[k]),x]).filter(Boolean);
+    if(P.length>1)s+=`<polyline points="${P.map(p=>p[0]+","+p[1]).join(" ")}" fill="none" stroke="${col}" stroke-width="2.2"/>`;
+    P.forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="${col}"><title>${esc(p[2].q)} TTM ${lab} ${eok(p[2][k])}</title></circle>`)});
+  T.forEach((x,i)=>{if(n<=12||i%2===(n-1)%2)s+=`<text x="${X(i)}" y="${H-12}" text-anchor="middle" font-size="11.5" fill="var(--ink2)">${esc(x.q.slice(2))}</text>`});
+  return s+"</svg>";
+}
 function finTable(items,head,rows){
   return `<div class="tw"><table><thead><tr><th class="l"></th>${items.map(x=>`<th>${esc(head(x))}</th>`).join("")}</tr></thead><tbody>${rows.map(([lab,f])=>`<tr><td class="rowh">${lab}</td>${items.map(x=>`<td>${f(x)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
@@ -195,6 +213,9 @@ function render(D){
   const Q=D.quarters||[];
   h+=`<section><h2>최근 12개 분기</h2><p class="sub">분기별 3개월 실적(억 원)입니다. 4분기는 연간에서 3분기 누적을 뺀 값이고, 흐리게 표시된 분기는 잠정실적입니다.</p><div class="card"><div class="legend"><span><i style="background:var(--bar2)"></i>매출액</span><span><i style="background:var(--bar)"></i>영업이익</span><span><i style="background:var(--line-c);height:3px"></i>영업이익률</span></div>${barLine(Q,"q",{title:"분기 매출과 영업이익",lab:x=>x.q.slice(2)})}</div>
   <div style="margin-top:12px">${Q.length?finTable(Q,x=>x.q.replace("Q"," Q")+(x.prelim?" 잠정":""),[["매출액",x=>eok(x.sales)],["매출총이익",x=>eok(x.gp)],["판관비",x=>eok(x.sga)],["영업이익",x=>eok(x.op)],["영업이익률",x=>x.op_margin==null?"–":num(x.op_margin,1)+"%"],["지배주주 순이익",x=>eok(x.ni_ctrl)+(x.ni_est?"*":"")]]):'<p class="empty">분기 자료 없음</p>'}</div></section>`;
+  const T=D.ttm||[];
+  h+=`<section><h2>최근 ${T.length||20}개 분기 TTM 추이</h2><p class="sub">각 분기까지 최근 4개 분기를 더한 값(억 원)입니다. 매출액은 왼쪽 축, 영업이익과 지배주주 순이익은 오른쪽 축입니다.${T.length&&T.length<20?" 공시에 분기 실적이 없는 기간이 있어 그릴 수 있는 분기만 표시했습니다.":""}</p><div class="card"><div class="legend"><span><i style="background:var(--ttm-s);height:3px"></i>매출액(왼쪽)</span><span><i style="background:var(--bar);height:3px"></i>영업이익(오른쪽)</span><span><i style="background:var(--line-c);height:3px"></i>지배주주 순이익(오른쪽)</span></div>${ttmChart(T)}</div>
+  ${T.length?`<div style="margin-top:12px">${finTable(T.slice(-8),x=>x.q.replace("Q"," Q"),[["TTM 매출액",x=>eok(x.sales)],["TTM 영업이익",x=>eok(x.op)],["TTM 지배주주 순이익",x=>eok(x.ni_ctrl)]])}<p class="src" style="margin-top:6px">표는 최근 8개 분기만 보여줍니다. 점에 마우스를 올리면 모든 분기 값이 나옵니다.</p></div>`:""}</section>`;
   h+=`<section class="deep"><h2>심층 분석</h2>${dp?deep(dp):'<div class="card empty">아직 심층 분석을 쓰지 않은 회사입니다. 실적이 좋은 회사부터 매일 몇 곳씩 사업보고서·뉴스·IR 자료·증권사 리포트를 읽고 채웁니다.</div>'}</section>`;
   $("#app").innerHTML=h;
 }
