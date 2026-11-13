@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>잠정실적 분석</title>
+<meta name="description" content="DART 잠정실적 공시로 본 분기 실적 상위 기업과 업종. 평일 저녁 자동 갱신.">
+<style>
+:root{
+  --bg:#f7f7f5;--surface:#ffffff;--ink:#1d1d1b;--ink2:#5b5b57;--ink3:#8a8a85;--line:#e4e3de;--line2:#efeee9;
+  --up:#c8372d;--up-soft:#fbe9e7;--down:#2a62c9;--down-soft:#e7eefb;--accent:#1f6f5c;--accent-soft:#e3f1ec;--warn:#9a6a00;--warn-soft:#fbf1d9;
+  --bar:#1f6f5c;--bar2:#c9c8c1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141413;--surface:#1d1d1b;--ink:#ecebe6;--ink2:#b3b2ab;--ink3:#85847e;--line:#33332f;--line2:#272725;
+  --up:#ff7a6e;--up-soft:#3a1f1c;--down:#7aa5ff;--down-soft:#1c2740;--accent:#5fc4a6;--accent-soft:#17302a;--warn:#e8b54a;--warn-soft:#342a12;
+  --bar:#5fc4a6;--bar2:#4a4944;
+}}
+:root[data-theme="dark"]{
+  --bg:#141413;--surface:#1d1d1b;--ink:#ecebe6;--ink2:#b3b2ab;--ink3:#85847e;--line:#33332f;--line2:#272725;
+  --up:#ff7a6e;--up-soft:#3a1f1c;--down:#7aa5ff;--down-soft:#1c2740;--accent:#5fc4a6;--accent-soft:#17302a;--warn:#e8b54a;--warn-soft:#342a12;
+  --bar:#5fc4a6;--bar2:#4a4944;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 64px}
+header h1{font-size:26px;line-height:1.25;margin:0 0 6px;letter-spacing:-.01em}
+.lede{color:var(--ink2);margin:0 0 4px;max-width:760px}
+.meta{color:var(--ink3);font-size:13px}
+nav.toc{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 4px}
+nav.toc a{font-size:13px;color:var(--ink2);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 11px;background:var(--surface)}
+nav.toc a:hover{color:var(--ink);border-color:var(--ink3)}
+section{margin-top:36px}
+h2{font-size:19px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--ink2);font-size:14px;margin:0 0 14px;max-width:820px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:20px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:13px 14px}
+.tile .k{font-size:12.5px;color:var(--ink2)}
+.tile .v{font-size:24px;font-weight:650;margin-top:2px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.tile .n{font-size:12.5px;color:var(--ink3);margin-top:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+select,input[type=search]{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:5px 8px;max-width:100%}
+input[type=search]{width:190px}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{font:inherit;font-size:13px;border:0;background:transparent;color:var(--ink2);padding:5px 10px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 6px 3px 11px}
+.chip button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0 4px}
+.bars{display:grid;grid-template-columns:minmax(92px,150px) 1fr 64px;gap:5px 10px;align-items:center}
+.bars .lab{font-size:13.5px;text-align:right;color:var(--ink);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bars .lab.sel{font-weight:700;color:var(--accent)}
+.bars .track{position:relative;height:18px;cursor:pointer}
+.bars .track .zero{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--ink3)}
+.bars .track .b{position:absolute;top:2px;height:14px;border-radius:3px;background:var(--bar)}
+.bars .track .b.neg{background:var(--down)}
+.bars .val{font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line2);white-space:nowrap;text-align:right}
+th{font-weight:600;color:var(--ink2);font-size:12.5px;background:var(--surface);cursor:pointer;user-select:none}
+th.l,td.l{text-align:left}
+th .ar{color:var(--ink3);font-size:10px;margin-left:2px}
+tbody tr:hover{background:var(--line2)}
+tbody tr.sel{background:var(--accent-soft)}
+td.name a{color:var(--ink);text-decoration:none;font-weight:600}
+td.name a:hover{text-decoration:underline}
+td.name .c{color:var(--ink3);font-size:11.5px;font-weight:400;margin-left:5px}
+.pos{color:var(--up)}.neg{color:var(--down)}.mut{color:var(--ink3)}
+.tag{display:inline-block;font-size:11.5px;border-radius:5px;padding:1px 6px;margin-right:3px;font-weight:600}
+.tag.s{background:var(--up-soft);color:var(--up)}
+.tag.t{background:var(--accent-soft);color:var(--accent)}
+.tag.v{background:var(--warn-soft);color:var(--warn)}
+.tag.d{background:var(--down-soft);color:var(--down)}
+.more{margin-top:10px;text-align:center}
+.more button{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 16px;cursor:pointer}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.list h3{font-size:15px;margin:0 0 2px}
+.list .d{font-size:12.5px;color:var(--ink2);margin:0 0 10px}
+.list ol{margin:0;padding:0;list-style:none;counter-reset:i}
+.list li{display:flex;gap:8px;align-items:baseline;padding:6px 0;border-top:1px solid var(--line2);font-size:13.5px}
+.list li:before{counter-increment:i;content:counter(i);color:var(--ink3);font-size:12px;width:16px;text-align:right;flex:none}
+.list li .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list li .nm a{color:var(--ink);text-decoration:none;font-weight:600}
+.list li .nm small{color:var(--ink3);margin-left:4px}
+.list li .x{font-variant-numeric:tabular-nums;white-space:nowrap}
+.list .empty{color:var(--ink3);font-size:13px;padding:8px 0}
+.alerts .a{display:grid;grid-template-columns:76px 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--line2);font-size:13.5px}
+.alerts .a:first-child{border-top:0}
+.alerts .a .when{color:var(--ink3);font-size:12.5px}
+.alerts .a a{color:var(--ink);font-weight:600;text-decoration:none}
+.alerts .a .why{color:var(--ink2)}
+.tl{display:flex;align-items:flex-end;gap:3px;height:110px;padding-top:6px}
+.tl .c{flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-width:5px}
+.tl .c .t{background:var(--bar2);border-radius:2px 2px 0 0}
+.tl .c .u{background:var(--bar)}
+.tlx{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink3);margin-top:4px}
+.legend{display:flex;gap:14px;font-size:12.5px;color:var(--ink2);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.note{font-size:13.5px;color:var(--ink2);max-width:860px;padding-left:18px}
+.note li{margin:5px 0}
+footer{margin-top:40px;font-size:12.5px;color:var(--ink3);border-top:1px solid var(--line);padding-top:14px}
+footer a,.sub a{color:var(--accent)}
+.err{background:var(--warn-soft);color:var(--warn);padding:12px;border-radius:8px;margin-top:16px}
+@media (max-width:640px){header h1{font-size:22px}.tile .v{font-size:21px}.bars{grid-template-columns:86px 1fr 54px}input[type=search]{width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1 id="title">잠정실적 분석</h1>
+  <p class="lede">상장사가 DART에 낸 잠정실적 공시를 모아, 실적이 좋아진 업종과 기업을 골라 보여 줍니다. 평일 저녁 7시 무렵 새 공시와 주가를 반영합니다.</p>
+  <div class="meta" id="meta">불러오는 중…</div>
+  <nav class="toc">
+    <a href="#sectors">업종 분석</a><a href="#best">실적 좋은 기업</a><a href="#alerts">최근 알림</a><a href="#all">전체 종목</a><a href="#kb">화장품 내재가치</a><a href="#how">기준 설명</a>
+  </nav>
+</header>
+<div id="app"></div>
+<div id="tiles" class="tiles"></div>
+
+<section id="sectors">
+  <h2>업종 분석</h2>
+  <p class="sub">업종을 누르면 아래 기업 목록과 전체 종목 표가 그 업종으로 좁혀집니다. 합산 증가율은 큰 회사 하나에 끌려가기 쉬우니 증익 비율과 중앙값을 같이 보세요.</p>
+  <div class="controls"><span class="seg" id="metricSeg"></span><span id="selChip"></span></div>
+  <div class="card"><div class="bars" id="bars"></div></div>
+  <div class="tw" style="margin-top:12px"><table id="secTable"></table></div>
+</section>
+
+<section id="best">
+  <h2>실적 좋은 기업</h2>
+  <p class="sub" id="bestSub"></p>
+  <div class="grid4" id="lists"></div>
+</section>
+
+<section id="alerts">
+  <h2>최근 알림</h2>
+  <p class="sub">매일 갱신 때 새로 들어온 공시 중 기준을 넘은 종목입니다. 화장품 업체는 적정주가 대비 괴리율이 크게 움직일 때도 알립니다.</p>
+  <div class="card"><div class="alerts" id="alertList"></div></div>
+</section>
+
+<section id="timeline">
+  <h2>공시 흐름</h2>
+  <p class="sub">날짜별 잠정실적 공시 수와 그중 영업이익이 전년보다 늘어난 회사 수입니다.</p>
+  <div class="card"><div class="tl" id="tl"></div><div class="tlx" id="tlx"></div>
+  <div class="legend"><span><i style="background:var(--bar)"></i>영업이익 증가</span><span><i style="background:var(--bar2)"></i>그 밖의 공시</span></div></div>
+</section>
+
+<section id="all">
+  <h2>전체 종목</h2>
+  <p class="sub">머리글을 누르면 정렬됩니다. 종목명을 누르면 DART 공시 원문이 열립니다. 금액은 억 원입니다.</p>
+  <div class="controls">
+    <select id="fSector" aria-label="업종"></select>
+    <select id="fMarket" aria-label="시장"><option value="">전체 시장</option><option>KOSPI</option><option>KOSDAQ</option></select>
+    <select id="fFlag" aria-label="구분"><option value="">전체 구분</option><option>서프라이즈</option><option>흑자전환</option><option>저평가 성장</option><option>적자전환</option></select>
+    <input type="search" id="fQ" placeholder="종목명·코드 검색" aria-label="검색">
+    <span class="meta" id="allCount"></span>
+  </div>
+  <div class="tw"><table id="allTable"></table></div>
+  <div class="more"><button id="moreBtn">더 보기</button></div>
+</section>
+
+<section id="kb">
+  <h2>화장품 업체 내재가치</h2>
+  <p class="sub">K-뷰티 산업 대시보드의 시나리오별 적정주가입니다. 괴리율이 플러스면 현재가가 기준 적정주가보다 낮다는 뜻입니다. <a href="https://lifeisgreathehe-cyber.github.io/kcosmetics-dashboard/">K-뷰티 대시보드 열기</a></p>
+  <div class="tw"><table id="kbTable"></table></div>
+</section>
+
+<section id="how">
+  <h2>기준 설명</h2>
+  <ul class="note" id="howList"></ul>
+</section>
+
+<footer>
+  자료: <a href="https://opendart.fss.or.kr/">OpenDART</a> 잠정실적 공시 원문과 재무제표, 네이버 금융 일별 종가, K-뷰티 산업 대시보드. 업종은 한국표준산업분류를 묶은 자체 분류입니다. 투자 권유가 아니며, 숫자는 공시 원문으로 확인하세요.
+</footer>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num=(x,d=0)=>x==null||isNaN(x)?"–":Number(x).toLocaleString("ko-KR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const sg=x=>x>0?"+":"";
+const pct=(x,d=1)=>x==null||isNaN(x)?'<span class="mut">–</span>':`<span class="${x>0?"pos":x<0?"neg":""}">${sg(x)}${num(x,d)}%</span>`;
+const eok=x=>{if(x==null)return"–";return Math.abs(x)>=10000?num(x/10000,1)+"조":num(x,0)+"억"};
+const dart=r=>`https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${encodeURIComponent(r)}`;
+const nv=c=>`https://finance.naver.com/item/main.naver?code=${encodeURIComponent(c)}`;
+const md=s=>(s||"").slice(5).replace("-","/");
+const tagCls={"서프라이즈":"s","흑자전환":"t","저평가 성장":"v","적자전환":"d"};
+const tags=f=>(f||[]).map(t=>`<span class="tag ${tagCls[t]||""}">${esc(t)}</span>`).join("");
+let D,sel="",metric="up_ratio",secSort={k:"up_ratio",d:-1},allSort={k:"op_delta",d:-1},kbSort={k:"upside",d:-1},shown=50;
+
+fetch("data/dashboard.json",{cache:"no-cache"}).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}).then(d=>{D=d;init()})
+ .catch(e=>{$("#app").innerHTML=`<div class="err">데이터를 불러오지 못했습니다 (${esc(e.message)}). 잠시 뒤 새로고침해 주세요.</div>`;$("#meta").textContent=""});
+
+function init(){
+  document.title=`${D.quarter} 잠정실적 분석`;
+  $("#title").textContent=`${D.quarter} 잠정실적 분석`;
+  $("#meta").textContent=`${D.asof} 기준 · 잠정실적을 낸 ${num(D.rows.length)}개사 · 주가는 ${D.asof} 종가`;
+  tiles();metricSeg();sectors();lists();alerts();timeline();allInit();kb();how();
+}
+function cmp(a,b){if(a==null&&b==null)return 0;if(a==null)return-1;if(b==null)return 1;if(Array.isArray(a)){a=a.length;b=b.length}return typeof a==="string"?a.localeCompare(b,"ko"):a-b}
+function thead(cols,st){return "<thead><tr>"+cols.map(([k,l,c])=>`<th class="${c||""}" data-k="${k}">${l}${st.k===k?`<span class="ar">${st.d>0?"▲":"▼"}</span>`:""}</th>`).join("")+"</tr></thead>"}
+function pool(){return D.rows.filter(r=>!sel||r.sector===sel)}
+
+function tiles(){
+  const t=D.total,x=D.total_ex;
+  const T=[
+    ["영업이익이 늘어난 회사",num(t.up_ratio,1)+"%",`전년 같은 분기 대비 · 증가율 중앙값 ${sg(t.med_yoy)}${num(t.med_yoy,1)}%`],
+    ["합산 영업이익 증가율",sg(t.op_yoy)+num(t.op_yoy,1)+"%",`삼성전자·SK하이닉스 빼면 ${sg(x.op_yoy)}${num(x.op_yoy,1)}%`],
+    ["어닝 서프라이즈",num(t.surprise)+"곳","전년·전분기 모두 크게 증가"],
+    ["흑자전환 / 적자전환",`${num(t.turn_pos)} / ${num(t.turn_neg)}`,"영업이익 기준"],
+    ["저평가 성장",num(t.value)+"곳","이익은 늘고 PER 15배 이하"],
+  ];
+  $("#tiles").innerHTML=T.map(([k,v,n])=>`<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="n">${n}</div></div>`).join("");
+}
+const METRICS={up_ratio:"증익 비율",med_yoy:"증가율 중앙값",op_yoy:"합산 영업이익 증가율",surprise:"서프라이즈 수"};
+function metricSeg(){
+  $("#metricSeg").innerHTML=Object.entries(METRICS).map(([k,l])=>`<button data-m="${k}" class="${k===metric?"on":""}">${l}</button>`).join("");
+  $("#metricSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;metric=b.dataset.m;secSort={k:metric,d:-1};metricSeg();sectors()};
+}
+function setSel(s){sel=(sel===s?"":s);$("#fSector").value=sel;shown=50;sectors();lists();allRender()}
+function sectors(){
+  const S=[...D.sectors].sort((a,b)=>(b[metric]??-1e9)-(a[metric]??-1e9));
+  const vals=S.map(s=>s[metric]??0);
+  let lo=Math.min(0,...vals),hi=Math.max(0,...vals);
+  if(metric==="op_yoy"||metric==="med_yoy"){hi=Math.min(hi,300);lo=Math.max(lo,-100)}
+  if(metric==="up_ratio")hi=100;
+  const span=(hi-lo)||1,z=(0-lo)/span*100;
+  $("#bars").innerHTML=S.map(s=>{
+    const v=s[metric],cv=Math.max(lo,Math.min(hi,v??0)),p=(cv-lo)/span*100;
+    const l=Math.min(z,p),w=Math.abs(p-z);
+    const lab=v==null?"–":metric==="surprise"?num(v)+"곳":metric==="up_ratio"?num(v,1)+"%":sg(v)+num(v,1)+"%";
+    const clip=(metric==="op_yoy"||metric==="med_yoy")&&v>300?" ›":"";
+    return `<div class="lab ${s.sector===sel?"sel":""}" data-s="${esc(s.sector)}" title="${esc(s.sector)}">${esc(s.sector)}</div>`+
+      `<div class="track" data-s="${esc(s.sector)}"><div class="zero" style="left:${z}%"></div><div class="b ${v<0?"neg":""}" style="left:${l}%;width:${v?Math.max(w,.6):0}%"></div></div>`+
+      `<div class="val">${lab}${clip}</div>`}).join("");
+  $("#bars").onclick=e=>{const el=e.target.closest("[data-s]");if(el)setSel(el.dataset.s)};
+  $("#selChip").innerHTML=sel?`<span class="chip">${esc(sel)}만 보는 중<button aria-label="업종 선택 해제">×</button></span>`:"";
+  const cb=$("#selChip button");if(cb)cb.onclick=()=>setSel(sel);
+  const cols=[["sector","업종","l"],["n","회사 수"],["up_ratio","증익 비율"],["qoq_up_ratio","전분기 대비 증익"],["med_yoy","증가율 중앙값"],["op_yoy","합산 영업이익 증가율"],["sales_yoy","합산 매출 증가율"],["margin","영업이익률"],["surprise","서프라이즈"],["turn_pos","흑자전환"],["turn_neg","적자전환"],["value","저평가 성장"],["per_med","PER 중앙값"],["op","3분기 영업이익"],["best","증익 규모 상위","l"]];
+  const R=[...D.sectors].sort((a,b)=>cmp(a[secSort.k],b[secSort.k])*secSort.d);
+  const fmt=(k,s)=>{const v=s[k];switch(k){
+    case"sector":return `<b>${esc(v)}</b>`;
+    case"n":case"surprise":case"turn_pos":case"turn_neg":case"value":return num(v);
+    case"up_ratio":case"qoq_up_ratio":case"margin":return v==null?"–":num(v,1)+"%";
+    case"med_yoy":case"op_yoy":case"sales_yoy":return pct(v);
+    case"per_med":return v==null?"–":num(v,1)+"배";
+    case"op":return eok(v);
+    case"best":return `<span class="mut">${esc((v||[]).join(", "))}</span>`;}};
+  $("#secTable").innerHTML=thead(cols,secSort)+"<tbody>"+R.map(s=>`<tr class="${s.sector===sel?"sel":""}" data-s="${esc(s.sector)}" style="cursor:pointer">${cols.map(([k,,c])=>`<td class="${c||""}">${fmt(k,s)}</td>`).join("")}</tr>`).join("")+"</tbody>";
+  $("#secTable").onclick=e=>{const th=e.target.closest("th");if(th){const k=th.dataset.k;secSort={k,d:secSort.k===k?-secSort.d:(k==="sector"?1:-1)};sectors();return}const tr=e.target.closest("tr[data-s]");if(tr)setSel(tr.dataset.s)};
+}
+function lists(){
+  const P=pool();
+  const L=[
+    ["어닝 서프라이즈","영업이익이 전년보다 50%, 전분기보다 20% 넘게 늘고 30억 원 이상",P.filter(r=>r.flags.includes("서프라이즈")).sort((a,b)=>b.op_yoy-a.op_yoy),r=>`${eok(r.op)} ${pct(r.op_yoy,0)}`],
+    ["증익 규모 상위","영업이익이 전년 같은 분기보다 가장 많이 늘어난 순",P.filter(r=>r.op_delta>0).sort((a,b)=>b.op_delta-a.op_delta),r=>`<span class="pos">+${eok(r.op_delta)}</span>`],
+    ["저평가 성장","최근 4개 분기 영업이익이 2025년보다 30% 이상 많은데 PER 15배 이하, 공시 뒤 주가 상승 5% 이하",P.filter(r=>r.flags.includes("저평가 성장")).sort((a,b)=>b.ttm_g-a.ttm_g),r=>`${pct(r.ttm_g,0)} · PER ${num(r.per,1)}`],
+    ["흑자전환","전년 같은 분기 영업적자에서 흑자로",P.filter(r=>r.flags.includes("흑자전환")).sort((a,b)=>b.op-a.op),r=>eok(r.op)],
+  ];
+  $("#bestSub").textContent=(sel?`${sel} 업종만 보고 있습니다. `:"")+"목록마다 상위 10곳입니다. 서프라이즈와 저평가 성장은 시가총액 1,000억 원 이상만 고릅니다. 전체는 '전체 종목' 표의 구분 필터로 볼 수 있습니다.";
+  $("#lists").innerHTML=L.map(([h,d,arr,f])=>`<div class="card list"><h3>${h} <span class="mut" style="font-weight:400;font-size:13px">${arr.length}곳</span></h3><p class="d">${d}</p>${arr.length?`<ol>${arr.slice(0,10).map(r=>`<li><span class="nm"><a href="${dart(r.rcept_no)}" target="_blank" rel="noopener">${esc(r.name)}</a><small>${esc(r.sector)}</small></span><span class="x">${f(r)}</span></li>`).join("")}</ol>`:'<div class="empty">해당 종목 없음</div>'}</div>`).join("");
+}
+function alerts(){
+  const A=D.alerts||[];
+  $("#alertList").innerHTML=A.length?A.slice(0,40).map(a=>`<div class="a"><div class="when">${esc(md(a.logged||a.date))}<br><span class="tag ${a.type==="실적"?"s":"v"}">${esc(a.type)}</span></div><div><a href="${a.rcept_no?dart(a.rcept_no):nv(a.code)}" target="_blank" rel="noopener">${esc(a.name)}</a><div class="why">${(a.why||[]).map(esc).join("<br>")}</div></div></div>`).join(""):'<div class="mut">아직 알림이 없습니다.</div>';
+}
+function timeline(){
+  const T=D.timeline||[],mx=Math.max(1,...T.map(t=>t.n));
+  $("#tl").innerHTML=T.map(t=>`<div class="c" title="${esc(t.date)}: 공시 ${t.n}건, 영업이익 증가 ${t.up}곳"><div class="t" style="height:${(t.n-t.up)/mx*100}px"></div><div class="u" style="height:${t.up/mx*100}px"></div></div>`).join("");
+  $("#tlx").innerHTML=T.length?`<span>${md(T[0].date)}</span><span>가장 많은 날 ${mx}건</span><span>${md(T[T.length-1].date)}</span>`:"";
+}
+const ACOLS=[["name","종목","l"],["flags","구분","l"],["per","PER"],["roe","ROE"],["op","영업이익"],["op_yoy","전년비"],["op_qoq","전분기비"],["op_delta","증익 규모"],["op_margin","영업이익률"],["sales","매출"],["sales_yoy","매출 전년비"],["ni","순이익"],["ni_yoy","순이익 전년비"],["ttm_g","4분기 합 vs 2025"],["mcap","시가총액"],["pbr","PBR"],["ret_since","공시 후 주가"],["ret_1y","1년 주가"],["fv_upside","적정가 괴리율"],["date","공시일"],["sector","업종","l"],["market","시장","l"]];
+function allInit(){
+  const secs=D.sectors.map(s=>s.sector).sort((a,b)=>a.localeCompare(b,"ko"));
+  $("#fSector").innerHTML='<option value="">전체 업종</option>'+secs.map(s=>`<option>${esc(s)}</option>`).join("");
+  $("#fSector").onchange=e=>{sel=e.target.value;shown=50;sectors();lists();allRender()};
+  ["#fMarket","#fFlag"].forEach(id=>$(id).onchange=()=>{shown=50;allRender()});
+  $("#fQ").oninput=()=>{shown=50;allRender()};
+  $("#moreBtn").onclick=()=>{shown+=100;allRender()};
+  $("#allTable").onclick=e=>{const th=e.target.closest("th");if(!th)return;const k=th.dataset.k;allSort={k,d:allSort.k===k?-allSort.d:(["name","sector","market","flags","date"].includes(k)?1:-1)};allRender()};
+  allRender();
+}
+function allRender(){
+  const m=$("#fMarket").value,f=$("#fFlag").value,q=$("#fQ").value.trim().toLowerCase();
+  const R=pool().filter(r=>(!m||r.market===m)&&(!f||r.flags.includes(f))&&(!q||r.name.toLowerCase().includes(q)||r.code.includes(q)));
+  R.sort((a,b)=>cmp(a[allSort.k],b[allSort.k])*allSort.d);
+  $("#allCount").textContent=`${num(R.length)}개 종목`;
+  const fmt=(k,r)=>{const v=r[k];switch(k){
+    case"name":return `<a href="${dart(r.rcept_no)}" target="_blank" rel="noopener">${esc(v)}</a><span class="c">${esc(r.code)}</span>`;
+    case"flags":return tags(v)||'<span class="mut">–</span>';
+    case"per":case"pbr":return v==null||v<=0?'<span class="mut">–</span>':num(v,1);
+    case"roe":case"op_margin":return v==null?'<span class="mut">–</span>':num(v,1)+"%";
+    case"op":case"sales":case"ni":case"mcap":return eok(v);
+    case"op_delta":return v==null?'<span class="mut">–</span>':`<span class="${v>0?"pos":v<0?"neg":""}">${sg(v)}${eok(v)}</span>`;
+    case"op_yoy":return r.op_turn?`<span class="${r.op_turn==="흑자전환"?"pos":r.op_turn==="적자전환"?"neg":"mut"}">${esc(r.op_turn)}</span>`:pct(v);
+    case"op_qoq":case"sales_yoy":case"ni_yoy":case"ttm_g":case"ret_since":case"ret_1y":case"fv_upside":return pct(v);
+    case"date":return md(v);
+    default:return esc(v)}};
+  $("#allTable").innerHTML=thead(ACOLS,allSort)+"<tbody>"+R.slice(0,shown).map(r=>`<tr>${ACOLS.map(([k,,c])=>`<td class="${c||""}${k==="name"?" name":""}">${fmt(k,r)}</td>`).join("")}</tr>`).join("")+"</tbody>";
+  $("#moreBtn").style.display=R.length>shown?"":"none";
+}
+function kb(){
+  const cols=[["name","종목","l"],["verdict","판단","l"],["upside","괴리율"],["price","현재가"],["fv_bear","적정가(약세)"],["fv_base","적정가(기준)"],["fv_bull","적정가(강세)"],["per","PER"],["roe","ROE"],["implied_g","주가에 반영된 성장률"],["base_g","기준 성장률"],["mcap","시가총액"],["review","분기 리뷰","l"],["group","구분","l"]];
+  const R=[...D.kbeauty].sort((a,b)=>cmp(a[kbSort.k],b[kbSort.k])*kbSort.d);
+  const fmt=(k,r)=>{const v=r[k];switch(k){
+    case"name":return `<a href="https://lifeisgreathehe-cyber.github.io/kcosmetics-dashboard/#companies" target="_blank" rel="noopener">${esc(v)}</a><span class="c">${esc(r.code)}</span>`;
+    case"upside":return pct(v,0);
+    case"price":case"fv_bear":case"fv_base":case"fv_bull":return v==null?"–":num(v)+"원";
+    case"per":return v==null||v<=0?"–":num(v,1);
+    case"roe":case"implied_g":case"base_g":return v==null?"–":num(v,1)+"%";
+    case"mcap":return eok(v);
+    case"review":return `<span class="mut" style="display:inline-block;min-width:260px;white-space:normal">${esc(v)}</span>`;
+    default:return esc(v)}};
+  $("#kbTable").innerHTML=thead(cols,kbSort)+"<tbody>"+R.map(r=>`<tr>${cols.map(([k,,c])=>`<td class="${c||""}${k==="name"?" name":""}">${fmt(k,r)}</td>`).join("")}</tr>`).join("")+"</tbody>";
+  $("#kbTable").onclick=e=>{const th=e.target.closest("th");if(!th)return;const k=th.dataset.k;kbSort={k,d:kbSort.k===k?-kbSort.d:(["name","verdict","group","review"].includes(k)?1:-1)};kb()};
+}
+function how(){
+  const c=D.config,s=c.surprise,v=c.value_up;
+  $("#howList").innerHTML=[
+    `실적은 DART 잠정실적 공시 원문 표에서 읽습니다. 한 회사가 여러 번 냈으면 연결 기준을 먼저, 그중 가장 최근 공시를 씁니다. 정정 공시도 반영됩니다.`,
+    `<b>어닝 서프라이즈</b>: 시가총액 ${num(s.mcap_min_eok)}억 원 이상이면서 분기 영업이익이 ${s.op_min_eok}억 원 이상이고, 전년 같은 분기보다 ${s.op_yoy_min}%, 직전 분기보다 ${s.op_qoq_min}% 넘게 늘어난 경우입니다. 증권사 컨센서스는 무료로 받을 공식 경로가 없어 쓰지 않았습니다.`,
+    `<b>흑자전환·적자전환</b>: 전년 같은 분기 대비 영업이익의 부호가 바뀐 경우로, 공시에 적힌 표기를 따릅니다.`,
+    `<b>저평가 성장</b>: 최근 4개 분기 영업이익 합(2026년 누적 + 2025년 연간 − 2025년 같은 기간 누적)이 2025년 연간보다 ${v.ttm_growth_min}% 이상 많고, PER ${v.per_max}배 이하이며, 공시 뒤 주가 상승이 ${v.ret_since_max}% 이하인 경우입니다.`,
+    `<b>증익 비율</b>은 업종 안에서 영업이익이 전년 같은 분기보다 늘어난 회사의 비율이고, <b>합산 영업이익 증가율</b>은 업종 전체 영업이익 합계의 증가율입니다. 막대 그래프에서 300%가 넘는 값은 잘라서 그립니다.`,
+    `PER은 시가총액을 최근 4개 분기 순이익으로 나눈 값이라 적자 회사는 비어 있습니다. 시가총액은 OpenDART 주식 수와 최근 종가로 계산합니다.`,
+    `업종은 한국표준산업분류를 묶은 자체 분류이고, K-뷰티 대시보드에 있는 25개사는 '화장품·미용'으로 모았습니다.`,
+  ].map(x=>`<li>${x}</li>`).join("");
+}
+})();
+</script>
+</body>
+</html>
