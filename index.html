@@ -89,9 +89,9 @@ td.fl{white-space:normal;max-width:96px;line-height:1.7}
 .grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 .list h3{font-size:15px;margin:0 0 2px}
 .list .d{font-size:12.5px;color:var(--ink2);margin:0 0 10px}
-.list ol{margin:0;padding:0;list-style:none;counter-reset:i}
+.list ol{margin:0;padding:0 4px 0 0;list-style:none;counter-reset:i;max-height:560px;overflow-y:auto}
 .list li{display:flex;gap:8px;align-items:baseline;padding:6px 0;border-top:1px solid var(--line2);font-size:13.5px}
-.list li:before{counter-increment:i;content:counter(i);color:var(--ink3);font-size:12px;width:16px;text-align:right;flex:none}
+.list li:before{counter-increment:i;content:counter(i);color:var(--ink3);font-size:12px;width:22px;text-align:right;flex:none}
 .list li .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .list li .nm a{color:var(--ink);text-decoration:none;font-weight:600}
 .list li .nm small{color:var(--ink3);margin-left:4px}
@@ -271,8 +271,8 @@ function lists(){
     ["저평가 성장","최근 4개 분기 영업이익이 2025년보다 30% 이상 많은데 PER 15배 이하, 공시 뒤 주가 상승 5% 이하",P.filter(r=>r.flags.includes("저평가 성장")).sort((a,b)=>b.ttm_g-a.ttm_g),r=>`${pct(r.ttm_g,0)} · PER ${num(r.per,1)}`],
     ["흑자전환","전년 같은 분기 영업적자에서 흑자로",P.filter(r=>r.flags.includes("흑자전환")).sort((a,b)=>b.op-a.op),r=>eok(r.op)],
   ];
-  $("#bestSub").textContent=(sel?`${sel} 업종만 보고 있습니다. `:"")+"목록마다 상위 10곳입니다. 서프라이즈와 저평가 성장은 시가총액 1,000억 원 이상만 고릅니다. 전체는 '전체 종목' 표의 구분 필터로 볼 수 있습니다.";
-  $("#lists").innerHTML=L.map(([h,d,arr,f])=>`<div class="card list"><h3>${h} <span class="mut" style="font-weight:400;font-size:13px">${arr.length}곳</span></h3><p class="d">${d}</p>${arr.length?`<ol>${arr.slice(0,10).map(r=>`<li><span class="nm"><a href="${dart(r.rcept_no)}" target="_blank" rel="noopener">${esc(r.name)}</a><small>${esc(r.sector)}</small></span><span class="x">${f(r)}</span></li>`).join("")}</ol>`:'<div class="empty">해당 종목 없음</div>'}</div>`).join("");
+  $("#bestSub").textContent=(sel?`${sel} 업종만 보고 있습니다. `:"")+"목록마다 해당 기업이 모두 나오고, 길면 목록 안에서 아래로 스크롤됩니다. 서프라이즈와 저평가 성장은 시가총액 1,000억 원 이상만 고릅니다. 전체는 '전체 종목' 표의 구분 필터로 볼 수 있습니다.";
+  $("#lists").innerHTML=L.map(([h,d,arr,f])=>`<div class="card list"><h3>${h} <span class="mut" style="font-weight:400;font-size:13px">${arr.length}곳</span></h3><p class="d">${d}</p>${arr.length?`<ol>${arr.map(r=>`<li><span class="nm"><a href="${dart(r.rcept_no)}" target="_blank" rel="noopener">${esc(r.name)}</a><small>${esc(r.sector)}</small></span><span class="x">${f(r)}</span></li>`).join("")}</ol>`:'<div class="empty">해당 종목 없음</div>'}</div>`).join("");
 }
 function alerts(){
   const A=D.alerts||[];
