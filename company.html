@@ -143,7 +143,7 @@ function finTable(items,head,rows){
   return `<div class="tw"><table><thead><tr><th class="l"></th>${items.map(x=>`<th>${esc(head(x))}</th>`).join("")}</tr></thead><tbody>${rows.map(([lab,f])=>`<tr><td class="rowh">${lab}</td>${items.map(x=>`<td>${f(x)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 function scenario(v,px){
-  const S=v.scenarios||{};const pts=[["약세",S.bear&&S.bear.per_share],["기준",S.base&&S.base.per_share],["강세",S.bull&&S.bull.per_share]].filter(p=>p[1]);
+  const S=v.scenarios||{};const pts=[["비관",S.bear&&S.bear.per_share],["기준",S.base&&S.base.per_share],["낙관",S.bull&&S.bull.per_share]].filter(p=>p[1]);
   if(!pts.length||!px)return '<p class="empty">이익이 적자이거나 자료가 부족해 적정주가를 계산하지 않았습니다.</p>';
   const all=[px,...pts.map(p=>p[1])];const lo=Math.min(...all)*0.9,hi=Math.max(...all)*1.05;const x=v=>(v-lo)/(hi-lo)*100;
   return `<div class="scen"><div class="axis"></div>${pts.map(([l,p])=>`<div class="pt" style="left:${x(p)}%"><div class="lb">${l}</div><div class="dot"></div>${num(p)}원</div>`).join("")}<div class="pt now" style="left:${x(px)}%"><div class="dot"></div><div class="pv">현재가 ${num(px)}원</div></div></div>`;
@@ -151,7 +151,7 @@ function scenario(v,px){
 function render(D){
   document.title=`${D.name} 기업 분석`;
   const M=D.metrics,V=D.valuation,dp=D.deep;
-  const vc=/저평가/.test(V.verdict)?"pos":/선반영/.test(V.verdict)?"neg":"";
+  const vc=V.marks&&V.marks.tone&&!/보류/.test(V.verdict)?(V.marks.tone==="neu"?"":V.marks.tone):"";
   const lq=M.last_q?M.last_q.replace("Q","년 ")+"분기":"최근 분기";
   let h=`<header><h1>${esc(D.name)}<span class="c">${esc(D.code)}</span></h1>
   <div class="meta">${esc(D.sector)} · ${esc(D.industry||"")} · ${esc(D.market)} · ${esc(D.basis||"")} 기준 · 주가 ${num(D.px)}원(${esc(D.asof)}) · 시가총액 ${eok(D.mcap)}</div>
@@ -159,24 +159,31 @@ function render(D){
   <div class="badges"><span class="badge ${vc}">${esc(V.verdict)}</span><span class="badge acc">린치 분류: ${esc(D.lynch_cat)}</span>${D.asset_play?'<span class="badge warn">자산주 성격</span>':""}<span class="badge">버핏 체크 ${D.checks.buffett.filter(c=>c.ok).length}/6</span>${dp?'<span class="badge acc">심층 분석 있음</span>':""}</div></header>`;
   h+=`<section><h2>한눈에 보기</h2><div class="card summary">${dp&&dp.summary?esc(dp.summary):autoSummary(D)}</div>${dp&&dp.updated?`<p class="src" style="margin-top:6px">심층 분석 작성일 ${esc(dp.updated)}</p>`:""}</section>`;
   h+=`<section><h2>투자지표</h2><p class="sub">PER은 지배주주 순이익, POR은 영업이익 기준입니다. '최근4분기'는 ${esc(lq)}까지 4개 분기 합, '분기 연환산'은 ${esc(lq)} 한 분기 값 × 4입니다.${M.est_note?" "+esc(M.est_note)+".":""}</p><div class="tiles">
-    ${[["PER 최근4분기",mul(M.per_ttm),`지배순이익 ${eok(M.ni_ttm)}`],["PER 분기 연환산",mul(M.per_ann),`분기 지배순이익 ${eok(M.ni_q)}`],["POR 최근4분기",mul(M.por_ttm),`영업이익 ${eok(M.op_ttm)}`],["POR 분기 연환산",mul(M.por_ann),`분기 영업이익 ${eok(M.op_q)}`],["PBR",M.pbr==null||M.pbr<0?"–":num(M.pbr,2)+"배","시가총액 ÷ 지배주주 자본"],["ROE",M.roe_ttm==null?"–":num(M.roe_ttm,1)+"%","최근4분기 지배순이익 ÷ 자본"],["배당수익률",M.div_yield==null?"–":num(M.div_yield,2)+"%","2025년 배당금 지급액 기준"],["PEG",M.peg==null?"–":num(M.peg,2),"PER ÷ 기준 성장률"],["순현금",M.net_cash==null?"–":eok(M.net_cash),"현금 − 차입금·사채"],["부채비율",M.debt_ratio==null?"–":num(M.debt_ratio)+"%","부채 ÷ 자본"],["공시 후 주가",M.ret_since==null?"–":sg(M.ret_since)+num(M.ret_since,1)+"%","공시일 종가 대비"],["1년 주가",M.ret_1y==null?"–":sg(M.ret_1y)+num(M.ret_1y,1)+"%",""]].map(([k,v,n])=>`<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="n">${n}</div></div>`).join("")}</div></section>`;
-  const S=V.scenarios||{};
-  h+=`<section><h2>내재가치</h2><p class="sub">${V.source==="K-뷰티 대시보드"?"K-뷰티 산업 대시보드의 시나리오별 적정주가입니다.":V.cyclical?"경기순환주라서 '지금 이익이 계속된다'고 보지 않고, 지금 이익이 몇 년 이어진 뒤 사이클 평균 수준의 정상 이익으로 내려온다는 이익 경로로 계산합니다. 약세는 중간에 불황기(과거 가장 나쁜 해의 이익률)를 2년 거칩니다. 정상 이익에 도달한 뒤에는 10년 매출 추세 성장률(최대 5%)로 늘고, 이후 2% 영구성장으로 봅니다.":"버핏의 주주이익과 린치의 성장률 틀로 계산한 2단계 할인 모형입니다. 앞으로 5년은 기준 성장률로, 6~10년차는 2%로 줄어들고, 이후는 2% 영구성장으로 봅니다. 이익 중 주주에게 돌아갈 현금 비율(전환율)은 지난 5년 주주이익 ÷ 순이익입니다."}</p>
+    ${[["PER 최근4분기",mul(M.per_ttm),`지배순이익 ${eok(M.ni_ttm)}`],["PER 분기 연환산",mul(M.per_ann),`분기 지배순이익 ${eok(M.ni_q)}`],["POR 최근4분기",mul(M.por_ttm),`영업이익 ${eok(M.op_ttm)}`],["POR 분기 연환산",mul(M.por_ann),`분기 영업이익 ${eok(M.op_q)}`],["PBR",M.pbr==null||M.pbr<0?"–":num(M.pbr,2)+"배","시가총액 ÷ 지배주주 자본"],["ROE",M.roe_ttm==null?"–":num(M.roe_ttm,1)+"%","최근4분기 지배순이익 ÷ 자본"],["배당수익률",M.div_yield==null?"–":num(M.div_yield,2)+"%","2025년 배당금 지급액 기준"],["PEG",M.peg==null?"–":num(M.peg,2),"PER ÷ 과거 5년 성장률"],["순현금",M.net_cash==null?"–":eok(M.net_cash),"현금 − 차입금·사채"],["부채비율",M.debt_ratio==null?"–":num(M.debt_ratio)+"%","부채 ÷ 자본"],["공시 후 주가",M.ret_since==null?"–":sg(M.ret_since)+num(M.ret_since,1)+"%","공시일 종가 대비"],["1년 주가",M.ret_1y==null?"–":sg(M.ret_1y)+num(M.ret_1y,1)+"%",""]].map(([k,v,n])=>`<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="n">${n}</div></div>`).join("")}</div></section>`;
+  const S=V.scenarios||{},MK=V.marks||{},CY=V.cycle,H=V.hist;
+  const pctw=x=>x==null?"–":Math.round(x*100)+"%";
+  const PN={bear:"비관",base:"기준",bull:"낙관"};
+  h+=`<section><h2>내재가치</h2><p class="sub">산업 대시보드(K-뷰티·K-반도체 등)와 같은 계산식입니다. 호황과 불황을 평균한 <b>정상 이익</b>으로 10년 주주잉여현금흐름(이익 × 현금 전환율)과 영구가치를 구하고, 순현금과 ${CY?"<b>남은 호황(불황) 기간의 초과 이익</b>":"남은 호황 초과 이익(사이클 경로를 정한 회사만)"}을 더합니다. 그 위에 하워드 막스식으로 사이클 위치별 시나리오 확률, 불황 3년 스트레스, 위험 점수에 따른 안전마진을 얹어 판단합니다.</p>
   <div class="two"><div class="card"><h3>시나리오별 적정주가</h3>${scenario(V,D.px)}
-  <div class="tw" style="margin-top:12px"><table><thead><tr><th class="l">시나리오</th><th${V.cyclical?' class="l"':""}>${V.cyclical?"이익 경로":"성장률(1~5년)"}</th><th>주당 가치</th><th>괴리율</th></tr></thead><tbody>${["bear","base","bull"].map(k=>S[k]?`<tr><td class="l">${{bear:"약세",base:"기준",bull:"강세"}[k]}</td><td${V.cyclical?' class="l" style="white-space:normal"':""}>${S[k].path?esc(S[k].path):(S[k].g==null?"–":num(S[k].g,1)+"%")}</td><td>${num(S[k].per_share)}원</td><td>${pct(S[k].upside,1)}</td></tr>`:"").join("")}</tbody></table></div></div>
+  <div class="tw" style="margin-top:12px"><table><thead><tr><th class="l">시나리오</th><th>성장률(1~5년)</th><th>확률</th><th>주당 가치</th><th>괴리율</th></tr></thead><tbody>${["bear","base","bull"].map(k=>S[k]?`<tr><td class="l">${PN[k]}</td><td>${num(S[k].g,1)}%</td><td>${MK.weights?pctw(MK.weights[k]):"–"}</td><td>${num(S[k].per_share)}원</td><td>${pct(S[k].upside,1)}</td></tr>`:"").join("")}
+  ${MK.weighted_ps?`<tr><td class="l"><b>확률 가중</b></td><td></td><td>100%</td><td><b>${num(MK.weighted_ps)}원</b></td><td>${pct(MK.weighted_upside,1)}</td></tr>
+  <tr><td class="l">안전마진 매수가</td><td colspan="2" class="mut">가중 가치 − ${MK.mos}%</td><td>${num(MK.buy_ps)}원</td><td>${pct(MK.buy_gap,1)}</td></tr>
+  <tr><td class="l">불황 스트레스</td><td colspan="2" class="mut">하방 가치</td><td>${num(MK.down_ps)}원</td><td>${pct(-MK.max_loss,1)}</td></tr>`:""}</tbody></table></div>
+  ${MK.note?`<p style="font-size:13.5px;margin:12px 0 0">${esc(MK.note)}</p>`:""}</div>
   <div class="card"><h3>가정과 해석</h3><dl class="kv">
-    ${V.cyclical?`<dt>최근 4분기 이익</dt><dd>${eok(V.E_ttm)} <span class="mut">지배주주 순이익</span></dd>
-    <dt>정상 이익</dt><dd>${eok(V.E_mid)} <span class="mut">${esc(V.mid_note)}</span></dd>
-    <dt>불황기 이익</dt><dd>${eok(V.E_trough)} <span class="mut">${esc(V.trough_note)}</span></dd>
-    <dt>주가에 반영된 정상 이익</dt><dd><b>${eok(V.implied_mid)}</b> <span class="mut">기준 경로에서 지금 주가를 정당화하려면 호황이 끝난 뒤에도 매년 이만큼 벌어야 함</span></dd>`:
-    `<dt>정상화 이익(E1)</dt><dd>${V.E1==null?"–":eok(V.E1)} <span class="mut">${esc(V.E1_note)}</span></dd>
-    ${V.mid_note?`<dt>사이클 평균 이익</dt><dd class="mut">${esc(V.mid_note)}</dd>`:""}`}
-    <dt>할인율(자기자본비용)</dt><dd>${num(V.r,1)}%</dd>
-    <dt>주주이익 전환율</dt><dd>${V.c==null?"–":num(V.c*100,0)+"%"}</dd>
-    <dt>${V.cyclical?"정상 이익 이후 성장률":"기준 성장률"}</dt><dd>${V.base_g==null?"–":num(V.base_g,1)+"%"} <span class="mut">(지배순이익 5년 ${V.growth&&V.growth.ni_cagr5!=null?num(V.growth.ni_cagr5,1)+"%":"–"}, 매출 5년 ${V.growth&&V.growth.sales_cagr5!=null?num(V.growth.sales_cagr5,1)+"%":"–"}, 매출 10년 ${V.growth&&V.growth.sales_cagr10!=null?num(V.growth.sales_cagr10,1)+"%":"–"} 연평균)</span></dd>
-    ${V.cyclical?"":`<dt>주가에 반영된 성장률</dt><dd>${V.implied_g==null?"–":num(V.implied_g,1)+"%"} <span class="mut">지금 주가를 정당화하려면 앞으로 5년간 필요한 연평균 이익 성장률</span></dd>`}
-    <dt>순현금 가산</dt><dd>${eok(V.net_cash_added)} <span class="mut">${V.nc_asof?esc(V.nc_asof)+" 재무상태표, 현금+단기금융상품−차입금·사채":""}</span></dd>
-    <dt>안전마진 가격</dt><dd>${V.mos_price==null?"–":num(V.mos_price)+"원"} <span class="mut">기준 적정주가의 70%</span></dd>
+    <dt>판단 근거</dt><dd>${esc(V.source)}${V.their&&V.their.base?` <span class="mut">(그 대시보드의 기준 적정가 ${num(V.their.base)}원. 여기서는 최신 분기 실적·주가·순현금으로 다시 계산)</span>`:""}</dd>
+    <dt>정상 이익(E1)</dt><dd>${V.E1==null?"–":"<b>"+eok(V.E1)+"</b>"} <span class="mut">${esc(V.E1_note)}</span></dd>
+    ${H?`<dt>과거 이익률</dt><dd>${esc(H.years)} 순이익률 평균 ${num(H.margin,1)}% (범위 ${num(H.margin_range[0],1)}~${num(H.margin_range[1],1)}%), 추세 매출 ${eok(H.trend_rev)} (추세 성장 연 ${num(H.trend_g,1)}%)${H.oneoff&&H.oneoff.length?` <span class="mut">일회성 보정: ${H.oneoff.map(o=>o.year+"년 "+o.ni_margin+"%→"+o.adj_margin+"%").join(", ")}</span>`:""}</dd>`:""}
+    <dt>사이클 위치</dt><dd>${esc(V.pos||"–")} <span class="mut">${esc(V.pos_src||"")}${V.cycle_note?" · "+esc(V.cycle_note):""}</span></dd>
+    ${CY?`<dt>남은 호황 초과이익</dt><dd>최근 이익 ${eok(CY.ni_now)} <span class="mut">(${esc(CY.ni_now_note)})</span> − 정상 이익 = 초과 ${eok(CY.excess)}. 연도별 반영 비율 ${CY.path.map((w,i)=>(CY.start+i)+"년 "+w+"배").join(", ")}, 이후 정상 이익. 현재가치 <b>${eok(CY.excess_value)}</b>${CY.path_note?`<br><span class="mut">${esc(CY.path_note)}</span>`:""}</dd>`:""}
+    <dt>할인율 · 현금 전환율</dt><dd>${num(V.r,1)}% · ${V.c==null?"–":num(V.c*100,0)+"%"}${V.c_T!=null&&V.c_T!==V.c?` → 영구 구간 ${num(V.c_T*100,0)}%`:""} <span class="mut">성장이 멈추면 재투자가 줄어 주주 몫이 커지는 점을 반영(정상 ROE ${V.roe_norm==null?"–":num(V.roe_norm,1)+"%"})</span></dd>
+    <dt>주가에 반영된 성장률</dt><dd>${V.implied_g==null?"–":num(V.implied_g,1)+"%"} <span class="mut">기준 가정 ${num(V.base_g,1)}%. 지금 시가총액을 정당화하는 1~5년 연평균 이익 성장률</span></dd>
+    ${MK.implied_margin!=null?`<dt>주가가 가정하는 순이익률</dt><dd>${num(MK.implied_margin,1)}% <span class="mut">정상 이익 가정 ${num(MK.base_margin,1)}%, 과거 평균 ${MK.hist_margin?num(MK.hist_margin[1],1):"–"}%</span></dd>`:""}
+    <dt>순현금 가산</dt><dd>${eok(V.net_cash_added)} <span class="mut">${V.nc_zero?"산업 대시보드 판단에 따라 더하지 않음":V.nc_note?esc(V.nc_note):V.nc_asof?esc(V.nc_asof)+" 재무상태표, 현금+단기금융상품−차입금·사채":""}</span></dd>
+    ${MK.risk?`<dt>위험 점수</dt><dd>${MK.risk.score}점 · ${esc(MK.risk.grade)} <span class="mut">${Object.entries(MK.risk.parts).map(([k,v])=>k+" "+v).join(", ")}</span></dd>
+    <dt>불황 스트레스</dt><dd class="mut">${esc(MK.stress.how)}</dd>
+    <dt>손익 비대칭</dt><dd>${esc(MK.asym)} <span class="mut">낙관까지 ${pct(MK.up_bull,1)}, 최대 손실 ${num(MK.max_loss,1)}%</span></dd>
+    ${MK.temperature?`<dt>업종 온도</dt><dd>${esc(MK.temperature.label)} <span class="mut">업종 ${MK.temperature.n}곳 중 ${MK.temperature.share_above}%가 기준 적정가보다 비쌈, 괴리율 중앙값 ${pct(MK.temperature.median_upside,1)}</span></dd>`:""}`:""}
   </dl></div></div></section>`;
   h+=`<section><h2>분석틀 점검</h2><p class="sub">숫자로 확인할 수 있는 항목은 자동으로 점검합니다. ✓ 충족, ✕ 미충족, · 자료 부족.</p><div class="three">
     <div class="card"><h3>워런 버핏</h3>${chk(D.checks.buffett)}${dp&&dp.buffett?`<p style="font-size:13.5px;margin:10px 0 0">${esc(dp.buffett)}</p>`:""}</div>
@@ -197,7 +204,8 @@ function autoSummary(D){
   let t=`${D.name}은(는) ${D.sector} 업종의 ${D.lynch_cat}로 분류됩니다. `;
   if(l&&p&&l.op!=null&&p.op!=null)t+=`${l.q.replace("Q","년 ")}분기 영업이익은 ${eok(l.op)}으로 전년 같은 분기(${eok(p.op)})보다 ${p.op>0?(sg((l.op/p.op-1)*100)+num((l.op/p.op-1)*100,0)+"%"):"개선"} 달라졌습니다. `;
   if(M.per_ttm>0)t+=`최근 4분기 기준 PER은 ${num(M.per_ttm,1)}배, 분기 연환산 PER은 ${M.per_ann>0?num(M.per_ann,1)+"배":"적자"}입니다. `;
-  if(V.scenarios&&V.scenarios.base)t+=`기준 시나리오 적정주가는 ${num(V.scenarios.base.per_share)}원으로 현재가 대비 ${sg(V.scenarios.base.upside)}${num(V.scenarios.base.upside,0)}%이며, 지금 주가에는 연 ${V.implied_g==null?"–":num(V.implied_g,1)}% 이익 성장이 들어 있습니다.`;
+  const MK=V.marks||{};
+  if(V.scenarios&&V.scenarios.base)t+=`정상 이익 기준 적정주가는 ${num(V.scenarios.base.per_share)}원(현재가 대비 ${sg(V.scenarios.base.upside)}${num(V.scenarios.base.upside,0)}%), 사이클 위치(${V.pos})를 반영한 확률 가중 가치는 ${num(MK.weighted_ps)}원이고 안전마진 매수가는 ${num(MK.buy_ps)}원입니다. 판단은 '${V.verdict}'입니다.`;
   return esc(t)+'<p class="src" style="margin:8px 0 0">숫자로 자동 작성한 요약입니다. 사업 내용 분석은 심층 분석이 채워지면 바뀝니다.</p>';
 }
 function deep(d){
