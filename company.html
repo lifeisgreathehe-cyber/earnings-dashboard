@@ -161,17 +161,21 @@ function render(D){
   h+=`<section><h2>투자지표</h2><p class="sub">PER은 지배주주 순이익, POR은 영업이익 기준입니다. '최근4분기'는 ${esc(lq)}까지 4개 분기 합, '분기 연환산'은 ${esc(lq)} 한 분기 값 × 4입니다.${M.est_note?" "+esc(M.est_note)+".":""}</p><div class="tiles">
     ${[["PER 최근4분기",mul(M.per_ttm),`지배순이익 ${eok(M.ni_ttm)}`],["PER 분기 연환산",mul(M.per_ann),`분기 지배순이익 ${eok(M.ni_q)}`],["POR 최근4분기",mul(M.por_ttm),`영업이익 ${eok(M.op_ttm)}`],["POR 분기 연환산",mul(M.por_ann),`분기 영업이익 ${eok(M.op_q)}`],["PBR",M.pbr==null||M.pbr<0?"–":num(M.pbr,2)+"배","시가총액 ÷ 지배주주 자본"],["ROE",M.roe_ttm==null?"–":num(M.roe_ttm,1)+"%","최근4분기 지배순이익 ÷ 자본"],["배당수익률",M.div_yield==null?"–":num(M.div_yield,2)+"%","2025년 배당금 지급액 기준"],["PEG",M.peg==null?"–":num(M.peg,2),"PER ÷ 기준 성장률"],["순현금",M.net_cash==null?"–":eok(M.net_cash),"현금 − 차입금·사채"],["부채비율",M.debt_ratio==null?"–":num(M.debt_ratio)+"%","부채 ÷ 자본"],["공시 후 주가",M.ret_since==null?"–":sg(M.ret_since)+num(M.ret_since,1)+"%","공시일 종가 대비"],["1년 주가",M.ret_1y==null?"–":sg(M.ret_1y)+num(M.ret_1y,1)+"%",""]].map(([k,v,n])=>`<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="n">${n}</div></div>`).join("")}</div></section>`;
   const S=V.scenarios||{};
-  h+=`<section><h2>내재가치</h2><p class="sub">${V.source==="K-뷰티 대시보드"?"K-뷰티 산업 대시보드의 시나리오별 적정주가입니다.":"버핏의 주주이익과 린치의 성장률 틀로 계산한 2단계 할인 모형입니다. 앞으로 5년은 기준 성장률로, 6~10년차는 2%로 줄어들고, 이후는 2% 영구성장으로 봅니다. 이익 중 주주에게 돌아갈 현금 비율(전환율)은 지난 5년 주주이익 ÷ 순이익입니다."}</p>
+  h+=`<section><h2>내재가치</h2><p class="sub">${V.source==="K-뷰티 대시보드"?"K-뷰티 산업 대시보드의 시나리오별 적정주가입니다.":V.cyclical?"경기순환주라서 '지금 이익이 계속된다'고 보지 않고, 지금 이익이 몇 년 이어진 뒤 사이클 평균 수준의 정상 이익으로 내려온다는 이익 경로로 계산합니다. 약세는 중간에 불황기(과거 가장 나쁜 해의 이익률)를 2년 거칩니다. 정상 이익에 도달한 뒤에는 10년 매출 추세 성장률(최대 5%)로 늘고, 이후 2% 영구성장으로 봅니다.":"버핏의 주주이익과 린치의 성장률 틀로 계산한 2단계 할인 모형입니다. 앞으로 5년은 기준 성장률로, 6~10년차는 2%로 줄어들고, 이후는 2% 영구성장으로 봅니다. 이익 중 주주에게 돌아갈 현금 비율(전환율)은 지난 5년 주주이익 ÷ 순이익입니다."}</p>
   <div class="two"><div class="card"><h3>시나리오별 적정주가</h3>${scenario(V,D.px)}
-  <div class="tw" style="margin-top:12px"><table><thead><tr><th class="l">시나리오</th><th>성장률(1~5년)</th><th>주당 가치</th><th>괴리율</th></tr></thead><tbody>${["bear","base","bull"].map(k=>S[k]?`<tr><td class="l">${{bear:"약세",base:"기준",bull:"강세"}[k]}</td><td>${S[k].g==null?"–":num(S[k].g,1)+"%"}</td><td>${num(S[k].per_share)}원</td><td>${pct(S[k].upside,1)}</td></tr>`:"").join("")}</tbody></table></div></div>
+  <div class="tw" style="margin-top:12px"><table><thead><tr><th class="l">시나리오</th><th${V.cyclical?' class="l"':""}>${V.cyclical?"이익 경로":"성장률(1~5년)"}</th><th>주당 가치</th><th>괴리율</th></tr></thead><tbody>${["bear","base","bull"].map(k=>S[k]?`<tr><td class="l">${{bear:"약세",base:"기준",bull:"강세"}[k]}</td><td${V.cyclical?' class="l" style="white-space:normal"':""}>${S[k].path?esc(S[k].path):(S[k].g==null?"–":num(S[k].g,1)+"%")}</td><td>${num(S[k].per_share)}원</td><td>${pct(S[k].upside,1)}</td></tr>`:"").join("")}</tbody></table></div></div>
   <div class="card"><h3>가정과 해석</h3><dl class="kv">
-    <dt>정상화 이익(E1)</dt><dd>${V.E1==null?"–":eok(V.E1)} <span class="mut">${esc(V.E1_note)}</span></dd>
-    ${V.mid_note?`<dt>사이클 평균 이익</dt><dd class="mut">${esc(V.mid_note)}</dd>`:""}
+    ${V.cyclical?`<dt>최근 4분기 이익</dt><dd>${eok(V.E_ttm)} <span class="mut">지배주주 순이익</span></dd>
+    <dt>정상 이익</dt><dd>${eok(V.E_mid)} <span class="mut">${esc(V.mid_note)}</span></dd>
+    <dt>불황기 이익</dt><dd>${eok(V.E_trough)} <span class="mut">${esc(V.trough_note)}</span></dd>
+    <dt>주가에 반영된 정상 이익</dt><dd><b>${eok(V.implied_mid)}</b> <span class="mut">기준 경로에서 지금 주가를 정당화하려면 호황이 끝난 뒤에도 매년 이만큼 벌어야 함</span></dd>`:
+    `<dt>정상화 이익(E1)</dt><dd>${V.E1==null?"–":eok(V.E1)} <span class="mut">${esc(V.E1_note)}</span></dd>
+    ${V.mid_note?`<dt>사이클 평균 이익</dt><dd class="mut">${esc(V.mid_note)}</dd>`:""}`}
     <dt>할인율(자기자본비용)</dt><dd>${num(V.r,1)}%</dd>
     <dt>주주이익 전환율</dt><dd>${V.c==null?"–":num(V.c*100,0)+"%"}</dd>
-    <dt>기준 성장률</dt><dd>${V.base_g==null?"–":num(V.base_g,1)+"%"} <span class="mut">(지배순이익 5년 ${V.growth&&V.growth.ni_cagr5!=null?num(V.growth.ni_cagr5,1)+"%":"–"}, 매출 5년 ${V.growth&&V.growth.sales_cagr5!=null?num(V.growth.sales_cagr5,1)+"%":"–"}, 매출 10년 ${V.growth&&V.growth.sales_cagr10!=null?num(V.growth.sales_cagr10,1)+"%":"–"} 연평균)</span></dd>
-    <dt>주가에 반영된 성장률</dt><dd>${V.implied_g==null?"–":num(V.implied_g,1)+"%"} <span class="mut">지금 주가를 정당화하려면 앞으로 5년간 필요한 연평균 이익 성장률</span></dd>
-    <dt>순현금 가산</dt><dd>${eok(V.net_cash_added)}</dd>
+    <dt>${V.cyclical?"정상 이익 이후 성장률":"기준 성장률"}</dt><dd>${V.base_g==null?"–":num(V.base_g,1)+"%"} <span class="mut">(지배순이익 5년 ${V.growth&&V.growth.ni_cagr5!=null?num(V.growth.ni_cagr5,1)+"%":"–"}, 매출 5년 ${V.growth&&V.growth.sales_cagr5!=null?num(V.growth.sales_cagr5,1)+"%":"–"}, 매출 10년 ${V.growth&&V.growth.sales_cagr10!=null?num(V.growth.sales_cagr10,1)+"%":"–"} 연평균)</span></dd>
+    ${V.cyclical?"":`<dt>주가에 반영된 성장률</dt><dd>${V.implied_g==null?"–":num(V.implied_g,1)+"%"} <span class="mut">지금 주가를 정당화하려면 앞으로 5년간 필요한 연평균 이익 성장률</span></dd>`}
+    <dt>순현금 가산</dt><dd>${eok(V.net_cash_added)} <span class="mut">${V.nc_asof?esc(V.nc_asof)+" 재무상태표, 현금+단기금융상품−차입금·사채":""}</span></dd>
     <dt>안전마진 가격</dt><dd>${V.mos_price==null?"–":num(V.mos_price)+"원"} <span class="mut">기준 적정주가의 70%</span></dd>
   </dl></div></div></section>`;
   h+=`<section><h2>분석틀 점검</h2><p class="sub">숫자로 확인할 수 있는 항목은 자동으로 점검합니다. ✓ 충족, ✕ 미충족, · 자료 부족.</p><div class="three">
