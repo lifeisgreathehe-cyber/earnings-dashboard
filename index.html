@@ -86,7 +86,10 @@ td.fl{white-space:normal;max-width:96px;line-height:1.7}
 .tag.d{background:var(--down-soft);color:var(--down)}
 .more{margin-top:10px;text-align:center}
 .more button{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 16px;cursor:pointer}
-.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:12px}
+.list li .g{font-variant-numeric:tabular-nums;white-space:nowrap;width:84px;text-align:right;flex:none;font-size:12.5px}
+.list .hd{display:flex;justify-content:flex-end;gap:8px;font-size:11.5px;color:var(--ink3);padding:0 8px 2px 0}
+.list .hd span:last-child{width:84px;white-space:nowrap;text-align:right}
 .list h3{font-size:15px;margin:0 0 2px}
 .list .d{font-size:12.5px;color:var(--ink2);margin:0 0 10px}
 .list ol{margin:0;padding:0 4px 0 0;list-style:none;counter-reset:i;max-height:560px;overflow-y:auto}
@@ -280,8 +283,9 @@ function lists(){
     ["저평가 성장","최근 4개 분기 영업이익이 2025년보다 30% 이상 많은데 PER 15배 이하, 공시 뒤 주가 상승 5% 이하",P.filter(r=>r.flags.includes("저평가 성장")).sort((a,b)=>b.ttm_g-a.ttm_g),r=>`${pct(r.ttm_g,0)} · PER ${num(r.per,1)}`],
     ["흑자전환","전년 같은 분기 영업적자에서 흑자로",P.filter(r=>r.flags.includes("흑자전환")).sort((a,b)=>b.op-a.op),r=>eok(r.op)],
   ];
-  $("#bestSub").textContent=(sel?`${sel} 업종만 보고 있습니다. `:"")+"목록마다 해당 기업이 모두 나오고, 길면 목록 안에서 아래로 스크롤됩니다. 서프라이즈와 저평가 성장은 시가총액 1,000억 원 이상만 고릅니다. 전체는 '전체 종목' 표의 구분 필터로 볼 수 있습니다.";
-  $("#lists").innerHTML=L.map(([h,d,arr,f])=>`<div class="card list"><h3>${h} <span class="mut" style="font-weight:400;font-size:13px">${arr.length}곳</span></h3><p class="d">${d}</p>${arr.length?`<ol>${arr.map(r=>`<li><span class="nm"><a href="${co(r.code)}">${esc(r.name)}</a><small>${esc(r.sector)}</small></span><span class="x">${f(r)}</span></li>`).join("")}</ol>`:'<div class="empty">해당 종목 없음</div>'}</div>`).join("");
+  $("#bestSub").textContent=(sel?`${sel} 업종만 보고 있습니다. `:"")+"목록마다 해당 기업이 모두 나오고, 길면 목록 안에서 아래로 스크롤됩니다. 오른쪽 끝 '내재가치 괴리'는 확률 가중 내재가치 대비 현재가의 차이로, 플러스면 현재가가 내재가치보다 쌉니다(전 종목 내재가치 표의 '가중 괴리'와 같은 값). 서프라이즈와 저평가 성장은 시가총액 1,000억 원 이상만 고릅니다. 전체는 '전체 종목' 표의 구분 필터로 볼 수 있습니다.";
+  const gap=r=>r.v_w_upside==null?`<span class="mut" title="${esc(r.v_verdict||"")}">–</span>`:`<span class="${r.v_w_upside>=0?"pos":"neg"}" title="${esc(r.v_verdict||"")}">${pct(r.v_w_upside,0)}</span>`;
+  $("#lists").innerHTML=L.map(([h,d,arr,f])=>`<div class="card list"><h3>${h} <span class="mut" style="font-weight:400;font-size:13px">${arr.length}곳</span></h3><p class="d">${d}</p>${arr.length?`<div class="hd"><span>실적</span><span>내재가치 괴리</span></div><ol>${arr.map(r=>`<li><span class="nm"><a href="${co(r.code)}">${esc(r.name)}</a><small>${esc(r.sector)}</small></span><span class="x">${f(r)}</span><span class="g">${gap(r)}</span></li>`).join("")}</ol>`:'<div class="empty">해당 종목 없음</div>'}</div>`).join("");
 }
 function alerts(){
   const A=D.alerts||[];
