@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>잠정실적 분석</title>
-<meta name="description" content="DART 잠정실적 공시로 본 분기 실적 상위 기업과 업종. 평일 저녁 자동 갱신.">
+<title>분기 실적 분석</title>
+<meta name="description" content="DART 잠정실적 공시와 분기보고서로 본 분기 실적 상위 기업과 업종. 평일 저녁 자동 갱신.">
 <style>
 :root{
   --bg:#f7f7f5;--surface:#ffffff;--ink:#1d1d1b;--ink2:#5b5b57;--ink3:#8a8a85;--line:#e4e3de;--line2:#efeee9;
@@ -123,8 +123,8 @@ footer a,.sub a{color:var(--accent)}
 <body>
 <div class="wrap">
 <header>
-  <h1 id="title">잠정실적 분석</h1>
-  <p class="lede">상장사가 DART에 낸 잠정실적 공시를 모아, 실적이 좋아진 업종과 기업을 골라 보여 줍니다. 평일 저녁 7시 무렵 새 공시와 주가를 반영합니다.</p>
+  <h1 id="title">분기 실적 분석</h1>
+  <p class="lede">상장사가 DART에 낸 잠정실적 공시와 분기보고서를 모아, 실적이 좋아진 업종과 기업을 골라 보여 줍니다. 평일 저녁 7시 무렵 새 공시와 주가를 반영합니다.</p>
   <div class="meta" id="meta">불러오는 중…</div>
   <nav class="toc">
     <a href="#sectors">업종 분석</a><a href="#best">실적 좋은 기업</a><a href="#alerts">최근 알림</a><a href="#all">전체 종목</a><a href="#kb">전 종목 내재가치</a><a href="#how">기준 설명</a>
@@ -155,7 +155,7 @@ footer a,.sub a{color:var(--accent)}
 
 <section id="timeline">
   <h2>공시 흐름</h2>
-  <p class="sub">날짜별 잠정실적 공시 수와 그중 영업이익이 전년보다 늘어난 회사 수입니다.</p>
+  <p class="sub">날짜별 실적 공시(잠정실적·분기보고서) 수와 그중 영업이익이 전년보다 늘어난 회사 수입니다.</p>
   <div class="card"><div class="tl" id="tl"></div><div class="tlx" id="tlx"></div>
   <div class="legend"><span><i style="background:var(--bar)"></i>영업이익 증가</span><span><i style="background:var(--bar2)"></i>그 밖의 공시</span></div></div>
 </section>
@@ -194,7 +194,7 @@ footer a,.sub a{color:var(--accent)}
 </section>
 
 <footer>
-  자료: <a href="https://opendart.fss.or.kr/">OpenDART</a> 잠정실적 공시 원문과 재무제표, 네이버 금융 일별 종가, 산업 대시보드(K-뷰티·K-반도체 등)의 회사별 판단. 업종은 한국표준산업분류를 묶은 자체 분류입니다. 투자 권유가 아니며, 숫자는 공시 원문으로 확인하세요.
+  자료: <a href="https://opendart.fss.or.kr/">OpenDART</a> 잠정실적 공시 원문(잠정공시가 없는 회사는 3분기 분기보고서)과 재무제표, 네이버 금융 일별 종가, 산업 대시보드(K-뷰티·K-반도체 등)의 회사별 판단. 업종은 한국표준산업분류를 묶은 자체 분류입니다. 투자 권유가 아니며, 숫자는 공시 원문으로 확인하세요.
 </footer>
 </div>
 
@@ -218,9 +218,9 @@ fetch("data/dashboard.json",{cache:"no-cache"}).then(r=>{if(!r.ok)throw new Erro
  .catch(e=>{$("#app").innerHTML=`<div class="err">데이터를 불러오지 못했습니다 (${esc(e.message)}). 잠시 뒤 새로고침해 주세요.</div>`;$("#meta").textContent=""});
 
 function init(){
-  document.title=`${D.quarter} 잠정실적 분석`;
-  $("#title").textContent=`${D.quarter} 잠정실적 분석`;
-  $("#meta").textContent=`${D.asof} 기준 · 잠정실적을 낸 ${num(D.rows.length)}개사 · 주가는 ${D.asof} 종가`;
+  document.title=`${D.quarter} 실적 분석`;
+  $("#title").textContent=`${D.quarter} 실적 분석`;
+  $("#meta").textContent=`${D.asof} 기준 · ${num(D.rows.length)}개사(잠정실적 ${num(D.rows.filter(r=>r.src!=="정기").length)}곳, 분기보고서 ${num(D.rows.filter(r=>r.src==="정기").length)}곳) · 주가는 ${D.asof} 종가`;
   tiles();metricSeg();sectors();lists();alerts();timeline();allInit();kbInit();how();
 }
 function cmp(a,b){if(a==null&&b==null)return 0;if(a==null)return-1;if(b==null)return 1;if(Array.isArray(a)){a=a.length;b=b.length}return typeof a==="string"?a.localeCompare(b,"ko"):a-b}
@@ -313,7 +313,7 @@ function allRender(){
   R.sort((a,b)=>cmp(a[allSort.k],b[allSort.k])*allSort.d);
   $("#allCount").textContent=`${num(R.length)}개 종목`;
   const fmt=(k,r)=>{const v=r[k];switch(k){
-    case"name":return `<a href="${co(r.code)}">${esc(v)}</a><span class="c">${esc(r.code)}</span><span class="s2">${esc(r.sector)} · ${esc(r.market)} · ${md(r.date)} 공시</span>`;
+    case"name":return `<a href="${co(r.code)}">${esc(v)}</a><span class="c">${esc(r.code)}</span><span class="s2">${esc(r.sector)} · ${esc(r.market)} · ${md(r.date)} ${r.src==="정기"?"분기보고서":"잠정"} 공시</span>`;
     case"flags":return tags(v)||'<span class="mut">–</span>';
     case"per":case"pbr":return v==null||v<=0?'<span class="mut">–</span>':num(v,1);
     case"roe":case"op_margin":return v==null?'<span class="mut">–</span>':num(v,1)+"%";

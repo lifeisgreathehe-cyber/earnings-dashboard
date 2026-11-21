@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>기업 분석</title>
-<meta name="description" content="잠정실적 공시 기업의 투자지표, 10년·12분기 실적, 내재가치와 분석틀.">
+<meta name="description" content="3분기 실적을 낸 상장사의 투자지표, 10년·12분기 실적, 내재가치와 분석틀.">
 <style>
 :root{
   --bg:#f7f7f5;--surface:#ffffff;--ink:#1d1d1b;--ink2:#5b5b57;--ink3:#8a8a85;--line:#e4e3de;--line2:#efeee9;
@@ -98,7 +98,7 @@ footer{margin-top:40px;font-size:12.5px;color:var(--ink3);border-top:1px solid v
 </head>
 <body>
 <div class="wrap">
-<a class="back" href="./">← 잠정실적 분석으로</a>
+<a class="back" href="./">← 실적 분석으로</a>
 <div id="app"><p class="meta">불러오는 중…</p></div>
 <footer>자료: OpenDART 사업·분기보고서와 잠정실적 공시, 네이버 금융 종가, K-뷰티 산업 대시보드. 심층 분석은 사업보고서·뉴스·IR 자료·증권사 리포트의 사업 내용을 요약한 것이며 목표주가는 쓰지 않습니다. 투자 권유가 아닙니다.</footer>
 </div>
@@ -173,7 +173,7 @@ function render(D){
   const lq=M.last_q?M.last_q.replace("Q","년 ")+"분기":"최근 분기";
   let h=`<header><h1>${esc(D.name)}<span class="c">${esc(D.code)}</span></h1>
   <div class="meta">${esc(D.sector)} · ${esc(D.industry||"")} · ${esc(D.market)} · ${esc(D.basis||"")} 기준 · 주가 ${num(D.px)}원(${esc(D.asof)}) · 시가총액 ${eok(D.mcap)}</div>
-  <div class="meta"><a href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${encodeURIComponent(D.rcept_no)}" target="_blank" rel="noopener">잠정실적 공시 원문(${esc(D.date)})</a><a href="https://finance.naver.com/item/main.naver?code=${D.code}" target="_blank" rel="noopener">네이버 금융</a><a href="https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm=${encodeURIComponent(D.name)}" target="_blank" rel="noopener">DART 공시 목록</a></div>
+  <div class="meta"><a href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${encodeURIComponent(D.rcept_no)}" target="_blank" rel="noopener">${D.src==="정기"?"3분기 분기보고서":"잠정실적 공시 원문"}(${esc(D.date)})</a><a href="https://finance.naver.com/item/main.naver?code=${D.code}" target="_blank" rel="noopener">네이버 금융</a><a href="https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm=${encodeURIComponent(D.name)}" target="_blank" rel="noopener">DART 공시 목록</a></div>
   <div class="badges"><span class="badge ${vc}">${esc(V.verdict)}</span><span class="badge acc">린치 분류: ${esc(D.lynch_cat)}</span>${D.asset_play?'<span class="badge warn">자산주 성격</span>':""}<span class="badge">버핏 체크 ${D.checks.buffett.filter(c=>c.ok).length}/6</span>${dp?'<span class="badge acc">심층 분석 있음</span>':""}</div></header>`;
   h+=`<section><h2>한눈에 보기</h2><div class="card summary">${dp&&dp.summary?esc(dp.summary):autoSummary(D)}</div>${dp&&dp.updated?`<p class="src" style="margin-top:6px">심층 분석 작성일 ${esc(dp.updated)}</p>`:""}</section>`;
   h+=`<section><h2>투자지표</h2><p class="sub">PER은 지배주주 순이익, POR은 영업이익 기준입니다. '최근4분기'는 ${esc(lq)}까지 4개 분기 합, '분기 연환산'은 ${esc(lq)} 한 분기 값 × 4입니다.${M.est_note?" "+esc(M.est_note)+".":""}</p><div class="tiles">
